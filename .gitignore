@@ -1,0 +1,7 @@
+node_modules
+.env
+server/news.db
+server/news.db-journal
+client/dist
+.DS_Store
+*.log
