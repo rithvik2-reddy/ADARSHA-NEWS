@@ -1,15 +1,20 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://adarshapaper.in https://*.vercel.app"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "ALLOW-FROM https://adarshapaper.in"
+          "value": "frame-ancestors 'self' https://adarshapaper.in"
         }
       ]
     }
