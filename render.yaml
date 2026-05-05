@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: adarsha-news-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: GEMINI_API_KEY
+        value: AIzaSyB4bxXa0JzAsdJnCj8_eI43IzNuOsUKqOY
+      - key: NODE_VERSION
+        value: "20"
