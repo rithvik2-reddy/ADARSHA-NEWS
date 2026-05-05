@@ -45,8 +45,8 @@ const translations = {
   }
 };
 
-// Use environment variable for API URL in production, fallback to localhost for development
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+// API Base URL for backend communication
+const API_BASE = "https://adarsha-news-1.onrender.com/api";
 
 const Home = ({ lang, t, setLatestNews, latestNews }) => {
   const [categoryNews, setCategoryNews] = useState({});
