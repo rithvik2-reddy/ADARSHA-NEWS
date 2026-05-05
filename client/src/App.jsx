@@ -139,6 +139,11 @@ const ArticleView = ({ lang, t }) => {
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ads, setAds] = useState(null);
+
+  useEffect(() => {
+    axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -169,7 +174,13 @@ const ArticleView = ({ lang, t }) => {
         <div className="article-content" dangerouslySetInnerHTML={{ __html: article.articleContent }}></div>
       </article>
       <aside className="article-sidebar">
-        <div className="sidebar-ad">Advertisement</div>
+        {ads?.sidebar?.imageUrl ? (
+          <a href={ads.sidebar.linkUrl || '#'} target="_blank" rel="noopener noreferrer">
+            <img src={ads.sidebar.imageUrl} alt="Advertisement" style={{ width: '100%', borderRadius: '8px' }} />
+          </a>
+        ) : (
+          <div className="sidebar-ad">Advertisement</div>
+        )}
       </aside>
     </main>
   );
@@ -178,7 +189,12 @@ const ArticleView = ({ lang, t }) => {
 function App() {
   const [lang, setLang] = useState('te');
   const [latestNews, setLatestNews] = useState([]);
+  const [ads, setAds] = useState(null);
   const t = translations[lang];
+
+  useEffect(() => {
+    axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
+  }, []);
 
   return (
     <div className="app">
@@ -195,7 +211,13 @@ function App() {
       <header className="header-main">
         <div className="container">
           <Link to="/" className="logo">ADARSHA<span>NEWS</span></Link>
-          <div className="header-ad">Advertisement Space</div>
+          {ads?.banner?.imageUrl ? (
+            <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="header-ad" style={{ padding: 0, background: 'transparent', border: 'none' }}>
+              <img src={ads.banner.imageUrl} alt="Advertisement" style={{ maxHeight: '90px', borderRadius: '4px' }} />
+            </a>
+          ) : (
+            <div className="header-ad">Advertisement Space</div>
+          )}
         </div>
       </header>
       <Routes>
