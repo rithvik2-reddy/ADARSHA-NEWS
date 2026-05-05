@@ -102,9 +102,7 @@ async function fetchNews() {
             const topItems = fetchedData.items.slice(0, 5);
 
             for (const item of topItems) {
-                const exists = await new Promise((resolve) => {
-                    db.get(`SELECT id FROM news WHERE link = ?`, [item.link], (err, row) => resolve(!!row));
-                });
+                const exists = await db.findOne({ link: item.link });
                 if (exists) continue;
 
                 console.log(`Processing: ${item.title}`);
@@ -161,14 +159,22 @@ async function fetchNews() {
                     finalContent = contentDoc.body.innerHTML;
                 }
 
-                db.run(
-                    `INSERT OR IGNORE INTO news (title, link, pubDate, contentSnippet, articleContent, source, category, imageUrl, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [finalTitle, item.link, item.pubDate || new Date().toISOString(), item.contentSnippet || "", finalContent, 'Adarsha News Editorial', feed.category, imageUrl, 'te'],
-                    function(err) {
-                        if (err) console.error('DB Error:', err.message);
-                        else if (this.changes > 0) addedCount++;
-                    }
-                );
+                try {
+                    await db.insert({
+                        title: finalTitle,
+                        link: item.link,
+                        pubDate: item.pubDate || new Date().toISOString(),
+                        contentSnippet: item.contentSnippet || "",
+                        articleContent: finalContent,
+                        source: 'Adarsha News Editorial',
+                        category: feed.category,
+                        imageUrl,
+                        language: 'te'
+                    });
+                    addedCount++;
+                } catch (dbErr) {
+                    if (!dbErr.message.includes('unique')) console.error('DB Error:', dbErr.message);
+                }
             }
         } catch (error) {
             console.error(`Feed Error ${feed.url}:`, error.message);

@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Health check for Render deployment
+// Health check for Render
 app.get('/health', (req, res) => res.send('OK'));
 
 // Run fetcher immediately on start
@@ -23,53 +23,49 @@ cron.schedule('*/20 * * * *', () => {
 });
 
 // API Routes
-app.get('/api/news', (req, res) => {
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = parseInt(req.query.offset) || 0;
-    
-    db.all(`SELECT id, title, link, pubDate, contentSnippet, source, category, imageUrl, language FROM news ORDER BY id DESC LIMIT ? OFFSET ?`, [limit, offset], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ data: rows });
-    });
+app.get('/api/news', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = parseInt(req.query.offset) || 0;
+        const rows = await db.find({}).sort({ _id: -1 }).skip(offset).limit(limit);
+        const mapped = rows.map(r => ({ ...r, id: r._id }));
+        res.json({ data: mapped });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/news/category/:category', (req, res) => {
-    const category = req.params.category;
-    const limit = parseInt(req.query.limit) || 20;
-    
-    db.all(`SELECT id, title, link, pubDate, contentSnippet, source, category, imageUrl, language FROM news WHERE category = ? ORDER BY id DESC LIMIT ?`, [category, limit], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ data: rows });
-    });
+app.get('/api/news/latest', async (req, res) => {
+    try {
+        const rows = await db.find({}).sort({ _id: -1 }).limit(6);
+        const mapped = rows.map(r => ({ ...r, id: r._id }));
+        res.json({ data: mapped });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/news/latest', (req, res) => {
-    db.all(`SELECT id, title, link, pubDate, contentSnippet, source, category, imageUrl, language FROM news ORDER BY id DESC LIMIT 6`, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ data: rows });
-    });
+app.get('/api/news/category/:category', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 20;
+        const rows = await db.find({ category: req.params.category }).sort({ _id: -1 }).limit(limit);
+        const mapped = rows.map(r => ({ ...r, id: r._id }));
+        res.json({ data: mapped });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// New Endpoint to get full article by ID
-app.get('/api/news/article/:id', (req, res) => {
-    const id = req.params.id;
-    db.get(`SELECT * FROM news WHERE id = ?`, [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ error: "Article not found" });
-        }
-        res.json({ data: row });
-    });
+app.get('/api/news/article/:id', async (req, res) => {
+    try {
+        const row = await db.findOne({ _id: req.params.id });
+        if (!row) return res.status(404).json({ error: 'Article not found' });
+        res.json({ data: { ...row, id: row._id } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
