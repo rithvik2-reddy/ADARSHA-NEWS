@@ -13,6 +13,13 @@ app.use(express.json());
 // Health check for Render
 app.get('/health', (req, res) => res.send('OK'));
 
+// Route to manually trigger fetcher (for external crons)
+app.get('/api/cron-fetch', async (req, res) => {
+    console.log('External cron trigger received.');
+    fetchNews();
+    res.send('Fetcher triggered.');
+});
+
 // Run fetcher immediately on start
 fetchNews();
 

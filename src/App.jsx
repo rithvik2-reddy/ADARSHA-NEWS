@@ -176,7 +176,7 @@ const ArticleView = ({ lang, t }) => {
       <aside className="article-sidebar">
         {ads?.sidebar?.imageUrl ? (
           <a href={ads.sidebar.linkUrl || '#'} target="_blank" rel="noopener noreferrer">
-            <img src={ads.sidebar.imageUrl} alt="Advertisement" style={{ width: '100%', borderRadius: '8px' }} />
+            <img src={ads.sidebar.imageUrl.startsWith('http') ? ads.sidebar.imageUrl : `https://adarshapaper.in${ads.sidebar.imageUrl}`} alt="Advertisement" style={{ width: '100%', borderRadius: '8px' }} />
           </a>
         ) : (
           <div className="sidebar-ad">Advertisement</div>
@@ -213,7 +213,7 @@ function App() {
           <Link to="/" className="logo">ADARSHA<span>NEWS</span></Link>
           {ads?.banner?.imageUrl ? (
             <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="header-ad" style={{ padding: 0, background: 'transparent', border: 'none' }}>
-              <img src={ads.banner.imageUrl} alt="Advertisement" style={{ maxHeight: '90px', borderRadius: '4px' }} />
+              <img src={ads.banner.imageUrl.startsWith('http') ? ads.banner.imageUrl : `https://adarshapaper.in${ads.banner.imageUrl}`} alt="Advertisement" style={{ maxHeight: '90px', borderRadius: '4px' }} />
             </a>
           ) : (
             <div className="header-ad">Advertisement Space</div>

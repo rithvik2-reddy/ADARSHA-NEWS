@@ -1,0 +1,16 @@
+name: Keep News Portal Awake
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Every 10 minutes
+  workflow_dispatch: # Allows manual run
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Adarsha News API
+        run: |
+          curl -s https://adarsha-news-1.onrender.com/health
+          echo "Pinged Adarsha News Health Check"
+          curl -s https://adarsha-news-1.onrender.com/api/cron-fetch
+          echo "Pinged Fetcher Route"
