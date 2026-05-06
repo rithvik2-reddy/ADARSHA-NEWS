@@ -29,10 +29,11 @@ jobs:
 
       - name: Fetch & Rewrite News (AI on GitHub's Servers)
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: AIzaSyB4bxXa0JzAsdJnCj8_eI43IzNuOsUKqOY
         run: |
           cd server
           node cloud-fetch.js
+        continue-on-error: true
 
       - name: Commit and Push Updated News JSON
         run: |
