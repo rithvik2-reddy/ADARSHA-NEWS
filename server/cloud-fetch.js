@@ -14,7 +14,10 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+if (!process.env.GEMINI_API_KEY) {
+    console.warn("⚠️  GEMINI_API_KEY is missing! AI rewriting will be skipped.");
+}
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const parser = new Parser({
@@ -98,17 +101,20 @@ async function aiRewrite(title, snippet) {
 async function run() {
     console.log(`[${new Date().toISOString()}] ☁️  GitHub Actions Cloud Fetch Starting...`);
 
+    const publicDir = path.dirname(OUTPUT_PATH);
+    if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+
     // Load existing news to avoid duplicates
     let existingNews = [];
-    if (fs.existsSync(OUTPUT_PATH)) {
-        try {
+    try {
+        if (fs.existsSync(OUTPUT_PATH)) {
             const raw = fs.readFileSync(OUTPUT_PATH, 'utf-8');
-            existingNews = JSON.parse(raw);
+            existingNews = raw ? JSON.parse(raw) : [];
             console.log(`Loaded ${existingNews.length} existing articles.`);
-        } catch (e) {
-            console.log('No existing news file, starting fresh.');
-            existingNews = [];
         }
+    } catch (e) {
+        console.log('Error reading existing news file, starting fresh.');
+        existingNews = [];
     }
 
     const existingLinks = new Set(existingNews.map(n => n.link));

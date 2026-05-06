@@ -42,6 +42,7 @@ jobs:
           git add public/news-data.json
           git diff --staged --quiet && echo "No new articles to commit." || (
             git commit -m "🤖 Auto Update: New articles [$(date '+%Y-%m-%d %H:%M')]"
+            git pull --rebase origin master
             git push origin HEAD:master
             echo "✅ News data pushed to GitHub successfully!"
           )
