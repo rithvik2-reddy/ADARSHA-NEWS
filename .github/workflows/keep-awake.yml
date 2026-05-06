@@ -1,7 +1,7 @@
 name: 24/7 Cloud News Automation
 on:
   schedule:
-    - cron: '0 * * * *' # Every hour
+    - cron: '*/30 * * * *' # Every 30 minutes
   workflow_dispatch:
 
 permissions:
