@@ -34,7 +34,7 @@ app.get('/api/news', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 20;
         const offset = parseInt(req.query.offset) || 0;
-        const rows = await db.find({}).sort({ _id: -1 }).skip(offset).limit(limit);
+        const rows = await db.find({}).sort({ createdAt: -1 }).skip(offset).limit(limit);
         const mapped = rows.map(r => ({ ...r, id: r._id }));
         res.json({ data: mapped });
     } catch (err) {
@@ -44,7 +44,7 @@ app.get('/api/news', async (req, res) => {
 
 app.get('/api/news/latest', async (req, res) => {
     try {
-        const rows = await db.find({}).sort({ _id: -1 }).limit(6);
+        const rows = await db.find({}).sort({ createdAt: -1 }).limit(6);
         const mapped = rows.map(r => ({ ...r, id: r._id }));
         res.json({ data: mapped });
     } catch (err) {
@@ -55,7 +55,7 @@ app.get('/api/news/latest', async (req, res) => {
 app.get('/api/news/category/:category', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 20;
-        const rows = await db.find({ category: req.params.category }).sort({ _id: -1 }).limit(limit);
+        const rows = await db.find({ category: req.params.category }).sort({ createdAt: -1 }).limit(limit);
         const mapped = rows.map(r => ({ ...r, id: r._id }));
         res.json({ data: mapped });
     } catch (err) {

@@ -22,7 +22,7 @@ if (process.env.MONGODB_URI) {
         category: String,
         imageUrl: String,
         language: String
-    });
+    }, { timestamps: true });
 
     const NewsModel = mongoose.model('News', NewsSchema);
 

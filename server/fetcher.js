@@ -163,7 +163,8 @@ async function fetchNews() {
                     await db.insert({
                         title: finalTitle,
                         link: item.link,
-                        pubDate: item.pubDate || new Date().toISOString(),
+                        pubDate: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                        createdAt: Date.now(),
                         contentSnippet: item.contentSnippet || "",
                         articleContent: finalContent,
                         source: 'Adarsha News Editorial',
