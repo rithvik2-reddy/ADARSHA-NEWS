@@ -46,20 +46,38 @@ const translations = {
 };
 
 // API Base URL for backend communication
-const API_BASE = "https://adarsha-news-1.onrender.com/api";
+// News data is fetched from the GitHub-hosted JSON file.
+// GitHub Actions updates this every 30 minutes automatically — no PC or server needed!
+const NEWS_DATA_URL = "https://raw.githubusercontent.com/rithvik2-reddy/ADARSHA-NEWS/master/public/news-data.json";
 
 const Home = ({ lang, t, setLatestNews, latestNews }) => {
   const [categoryNews, setCategoryNews] = useState({});
   const [activeCategory, setActiveCategory] = useState('Latest');
 
+  // Load all news from the GitHub JSON file once
+  const [allNews, setAllNews] = useState([]);
+
   useEffect(() => {
-    axios.get(`${API_BASE}/news/latest`).then(res => setLatestNews(res.data.data)).catch(err => console.error(err));
+    axios.get(NEWS_DATA_URL)
+      .then(res => {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setAllNews(data);
+        // Set latest 6 for ticker and hero section
+        setLatestNews(data.slice(0, 6));
+      })
+      .catch(err => console.error('Failed to load news:', err));
   }, []);
 
   useEffect(() => {
-    const endpoint = activeCategory === 'Latest' ? `${API_BASE}/news?limit=24` : `${API_BASE}/news/category/${activeCategory}?limit=24`;
-    axios.get(endpoint).then(res => setCategoryNews(prev => ({ ...prev, [activeCategory]: res.data.data }))).catch(err => console.error(err));
-  }, [activeCategory]);
+    if (allNews.length === 0) return;
+    let filtered;
+    if (activeCategory === 'Latest') {
+      filtered = allNews.slice(0, 24);
+    } else {
+      filtered = allNews.filter(n => n.category === activeCategory).slice(0, 24);
+    }
+    setCategoryNews(prev => ({ ...prev, [activeCategory]: filtered }));
+  }, [activeCategory, allNews]);
 
   const formatDate = (dateString) => {
     const d = new Date(dateString);
@@ -142,12 +160,21 @@ const ArticleView = ({ lang, t }) => {
   const [ads, setAds] = useState(null);
 
   useEffect(() => {
+    // Load ads from adarshapaper.in settings
     axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API_BASE}/news/article/${id}`).then(res => { setArticle(res.data.data); setLoading(false); window.scrollTo(0, 0); }).catch(err => { console.error(err); setLoading(false); });
+    // Read article directly from the GitHub-hosted JSON
+    axios.get(NEWS_DATA_URL)
+      .then(res => {
+        const data = Array.isArray(res.data) ? res.data : [];
+        const found = data.find(n => n.id === id);
+        if (found) { setArticle(found); window.scrollTo(0, 0); }
+        setLoading(false);
+      })
+      .catch(err => { console.error(err); setLoading(false); });
   }, [id]);
 
   if (loading) return <div className="container" style={{padding: '100px 0', textAlign: 'center'}}>వార్తలు లోడ్ అవుతున్నాయి...</div>;

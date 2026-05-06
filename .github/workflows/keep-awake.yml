@@ -1,8 +1,8 @@
 name: 24/7 Cloud News Automation
 on:
   schedule:
-    - cron: '*/30 * * * *' # Every 30 minutes
-  workflow_dispatch:
+    - cron: '*/30 * * * *'   # Every 30 minutes on GitHub's cloud servers
+  workflow_dispatch:          # Allow manual trigger from GitHub website
 
 permissions:
   contents: write
@@ -11,31 +11,36 @@ jobs:
   fetch-and-update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
+          fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Install Server Dependencies
         run: |
           cd server
           npm install
 
-      - name: Fetch News
+      - name: Fetch & Rewrite News (AI on GitHub's Servers)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           cd server
           node cloud-fetch.js
 
-      - name: Commit and Push News
+      - name: Commit and Push Updated News JSON
         run: |
           git config --global user.name "Adarsha News Bot"
           git config --global user.email "bot@adarshanews.com"
-          git add server/news.db
-          git commit -m "Cloud Update: New articles added [$(date)]" || echo "No new news to commit"
-          git push origin master
+          git add public/news-data.json
+          git diff --staged --quiet && echo "No new articles to commit." || (
+            git commit -m "🤖 Auto Update: New articles [$(date '+%Y-%m-%d %H:%M')]"
+            git push origin HEAD:master
+            echo "✅ News data pushed to GitHub successfully!"
+          )

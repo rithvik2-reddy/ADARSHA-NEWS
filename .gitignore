@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Local NeDB database — news is now stored in public/news-data.json on GitHub
+server/news.db
