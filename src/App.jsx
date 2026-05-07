@@ -260,7 +260,7 @@ function App() {
   const t = translations[lang];
 
   useEffect(() => {
-    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => {
+    axios.get(`https://adarshapaper.in/settings.json?t=${Date.now()}`, { timeout: 10000 }).then(res => {
       setSettings(res.data);
       setAds(res.data.newsAds);
     }).catch(() => {});
