@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import { Globe, Clock, Zap, Menu, ArrowLeft, Share2, MessageSquare } from 'lucide-react';
@@ -49,6 +49,49 @@ const translations = {
 // News data is fetched from the GitHub-hosted JSON file.
 // GitHub Actions updates this every 30 minutes automatically — no PC or server needed!
 const NEWS_DATA_URL = "https://raw.githubusercontent.com/rithvik2-reddy/ADARSHA-NEWS/master/public/news-data.json";
+
+const SOURCE_LINE_PATTERNS = [
+  /^సాక్షి[,:\s-]/i,
+  /^sakshi[,:\s-]/i,
+  /^సాక్షి ప్రతినిధి/i,
+  /^sakshi representative/i
+];
+
+function sanitizeArticleHtml(html) {
+  if (!html) return '';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('script, style, iframe, .app-download-banner, .sakshi-play-store, .source-branding, .footer-credits').forEach((el) => el.remove());
+
+  doc.querySelectorAll('a').forEach((a) => {
+    const href = (a.getAttribute('href') || '').toLowerCase();
+    const text = (a.textContent || '').toLowerCase();
+    if (
+      href.includes('play.google.com') ||
+      href.includes('apps.apple.com') ||
+      href.includes('sakshi.com/apps') ||
+      text.includes('play store') ||
+      text.includes('download app')
+    ) {
+      a.remove();
+    }
+  });
+
+  doc.querySelectorAll('p, span, div, strong').forEach((el) => {
+    if (el.children.length > 0) return;
+    const text = (el.textContent || '').trim();
+    if (!text) return;
+    if (SOURCE_LINE_PATTERNS.some((pattern) => pattern.test(text))) {
+      el.remove();
+    }
+  });
+
+  return doc.body.innerHTML
+    .replace(/<p>\s*Download[^<]*<\/p>/gi, '')
+    .replace(/<p>\s*Google Play[^<]*<\/p>/gi, '')
+    .trim();
+}
 
 const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory, categoryNews }) => {
   const formatDate = (dateString) => {
@@ -124,6 +167,18 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
   );
 };
 
+const SkeletonArticle = () => (
+  <main className="container article-container">
+    <div className="skeleton-card" style={{gridColumn:'1/-1',padding:'24px',borderRadius:'10px',background:'#fff'}}>
+      <div className="skeleton-line short" style={{marginBottom:'20px'}}></div>
+      <div className="skeleton-line" style={{height:'28px',marginBottom:'10px'}}></div>
+      <div className="skeleton-line" style={{height:'28px',width:'75%',marginBottom:'28px'}}></div>
+      <div className="skeleton-img" style={{borderRadius:'10px',marginBottom:'28px',height:'320px'}}></div>
+      {[1,2,3,4,5].map(i=><div key={i} className="skeleton-line" style={{height:'15px',width:i%2===0?'85%':'100%',marginBottom:'16px'}}></div>)}
+    </div>
+  </main>
+);
+
 const ArticleView = ({ lang, t }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -133,13 +188,13 @@ const ArticleView = ({ lang, t }) => {
 
   useEffect(() => {
     // Load ads from adarshapaper.in settings
-    axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
+    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
     setLoading(true);
     // Read article directly from the GitHub-hosted JSON
-    axios.get(NEWS_DATA_URL)
+    axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 10000 })
       .then(res => {
         const data = Array.isArray(res.data) ? res.data : [];
         const found = data.find(n => n.id === id);
@@ -148,9 +203,18 @@ const ArticleView = ({ lang, t }) => {
       })
       .catch(err => { console.error(err); setLoading(false); });
   }, [id]);
+  const sanitizedHtml = useMemo(() => sanitizeArticleHtml(article?.articleContent || ''), [article?.articleContent]);
 
-  if (loading) return <div className="container" style={{padding: '100px 0', textAlign: 'center'}}>వార్తలు లోడ్ అవుతున్నాయి...</div>;
-  if (!article) return <div className="container">వార్త కనుగొనబడలేదు.</div>;
+  if (loading) return <SkeletonArticle />;
+  if (!article) return (
+    <main className="container article-container">
+      <button onClick={() => navigate(-1)} className="back-btn"><ArrowLeft size={18} /> వెనక్కి వెళ్ళండి</button>
+      <div style={{padding:'60px 20px',textAlign:'center',gridColumn:'1/-1',background:'#fff',borderRadius:'10px'}}>
+        <div style={{fontSize:'3rem',marginBottom:'16px'}}>📭</div>
+        <p style={{fontSize:'1.1rem',color:'#666'}}>వార్త కనుగొనబడలేదు.</p>
+      </div>
+    </main>
+  );
 
   return (
     <main className="container article-container">
@@ -170,7 +234,7 @@ const ArticleView = ({ lang, t }) => {
           </div>
         </header>
         <img src={article.imageUrl} alt={article.title} className="article-main-image" />
-        <div className="article-content" dangerouslySetInnerHTML={{ __html: article.articleContent }}></div>
+        <div className="article-content" dangerouslySetInnerHTML={{ __html: sanitizedHtml }}></div>
       </article>
       <aside className="article-sidebar">
         {ads?.sidebar?.imageUrl ? (
@@ -195,13 +259,13 @@ function App() {
   const t = translations[lang];
 
   useEffect(() => {
-    axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
+    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await axios.get(`${NEWS_DATA_URL}?v=${Date.now()}`);
+        const res = await axios.get(`${NEWS_DATA_URL}?v=${Date.now()}`, { timeout: 10000 });
         const data = Array.isArray(res.data) ? res.data : [];
         setAllNews(data);
         setLatestNews(data.slice(0, 8));

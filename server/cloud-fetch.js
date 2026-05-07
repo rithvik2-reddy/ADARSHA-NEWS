@@ -53,6 +53,99 @@ function cleanTitle(title) {
     return cleaned.trim();
 }
 
+function cleanContent(html) {
+    if (!html) return "";
+    
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
+    const sanitizationLog = [];
+    const logRemoval = (reason, sample = "") => {
+        sanitizationLog.push({ reason, sample: String(sample || "").slice(0, 120) });
+    };
+
+    // 1. Remove specific known branding/ad selectors
+    const selectorsToRemove = [
+        '.app-download-banner', '.footer-credits', '.source-branding',
+        '.sakshi-play-store', '.social-share-strip', 'script', 'style', 'iframe',
+        '.ad-container', '.sponsored-content', 'button', '.newsletter-signup',
+        '.download-app', '.google-play-link', '.appstore-link'
+    ];
+    selectorsToRemove.forEach(sel => {
+        doc.querySelectorAll(sel).forEach(el => {
+            logRemoval(`selector:${sel}`, el.textContent);
+            el.remove();
+        });
+    });
+
+    // 2. Remove all external app links (Play Store, App Store)
+    const links = doc.querySelectorAll('a');
+    links.forEach(link => {
+        const href = link.getAttribute('href') || '';
+        const text = (link.textContent || '').toLowerCase();
+        if (
+            href.includes('play.google.com') ||
+            href.includes('apps.apple.com') ||
+            href.includes('apple.com/app-store') ||
+            href.includes('sakshi.com/apps') ||
+            text.includes('play store') ||
+            text.includes('download app')
+        ) {
+            logRemoval('external-app-link', href || text);
+            link.remove();
+        }
+    });
+
+    // 3. Remove all images that look like app banners or ads
+    const imgs = doc.querySelectorAll('img');
+    imgs.forEach(img => {
+        const alt = (img.getAttribute('alt') || '').toLowerCase();
+        const src = (img.getAttribute('src') || '').toLowerCase();
+        if (alt.includes('download') || alt.includes('app') || alt.includes('sakshi') || 
+            src.includes('playstore') || src.includes('appstore') || src.includes('banner')) {
+            logRemoval('promo-image', src || alt);
+            img.remove();
+        }
+    });
+
+    // 4. Remove intro/footer branding blocks only (avoid global body replacements).
+    const introOrFooterPatterns = [
+        /^సాక్షి[,:\s-]/i,
+        /^sakshi[,:\s-]/i,
+        /^సాక్షి ప్రతినిధి/i,
+        /^sakshi representative/i,
+        /download.*app/i,
+        /google play/i,
+        /app store/i
+    ];
+    doc.querySelectorAll('p, div, span, strong').forEach((el) => {
+        if (el.children.length > 0) return;
+        const text = (el.textContent || '').trim();
+        if (!text) return;
+        const shouldRemove = introOrFooterPatterns.some((pattern) => pattern.test(text));
+        if (shouldRemove) {
+            logRemoval('intro-footer-branding', text);
+            el.remove();
+        }
+    });
+
+    // 5. Strip leftover intro lines from HTML only for known start patterns.
+    let finalHtml = doc.body.innerHTML;
+    const introPatterns = [
+        /^<p>\s*సాక్షి,\s*[^:]+:\s*<\/p>/i,
+        /^<p>\s*సాక్షి ప్రతినిధి[^:]*:\s*<\/p>/i,
+        /^<p>\s*Sakshi,\s*[^:]+:\s*<\/p>/i
+    ];
+    introPatterns.forEach(pattern => {
+        finalHtml = finalHtml.replace(pattern, "");
+    });
+
+    if (sanitizationLog.length > 0) {
+        console.log(`[sanitize] removed ${sanitizationLog.length} elements`);
+    }
+
+    return finalHtml.trim();
+}
+
 async function scrapeArticle(url) {
     try {
         const response = await axios.get(url, {
@@ -73,9 +166,14 @@ async function scrapeArticle(url) {
         }
         const reader = new Readability(document);
         const article = reader.parse();
+        
+        // Sanitize the content right after scraping
+        const sanitizedHtml = cleanContent(article ? article.content : "");
+        const sanitizedText = article ? article.textContent.trim() : "";
+
         return {
-            content: article ? article.textContent.trim() : "",
-            htmlContent: article ? article.content : "",
+            content: sanitizedText,
+            htmlContent: sanitizedHtml,
             image: image || ""
         };
     } catch (e) {
@@ -86,6 +184,8 @@ async function scrapeArticle(url) {
 async function aiRewrite(title, snippet) {
     try {
         const prompt = `Rewrite this news as a professional Adarsha News original article in Telugu. 
+        IMPORTANT: Remove ALL mentions of the source brand (Sakshi, etc.), app download links, or external publisher metadata. 
+        The article must feel like 100% original Adarsha News content.
         Headline: ${title}
         Content: ${snippet}
         Return JSON { "newTitle": "...", "newContent": "HTML <p>..." }`;
@@ -150,6 +250,9 @@ async function run() {
                     finalTitle = aiResult.newTitle;
                     finalContent = aiResult.newContent;
                 }
+                
+                // Final safety sanitization for content
+                finalContent = cleanContent(finalContent);
 
                 const article = {
                     id: `news_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
