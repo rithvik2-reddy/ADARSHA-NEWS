@@ -307,12 +307,15 @@ function App() {
       </header>
       <header className="header-main">
         <div className="container">
-          <Link to="/" className="logo">
-            {settings?.logoImage ? (
-              <img src={`https://adarshapaper.in${settings.logoImage}`} alt="Adarsha News" style={{ maxHeight: '70px', display: 'block' }} />
-            ) : (
-              <>ఆదర్శ<span>వార్తలు</span></>
-            )}
+          <Link to="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1' }}>
+              <span style={{ fontSize: '1.8rem', fontWeight: '900', color: '#000', letterSpacing: '-1px' }}>
+                ADARSHA <span style={{ color: 'var(--primary-color)' }}>NEWS</span>
+              </span>
+              <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#666', marginTop: '2px', letterSpacing: '1px' }}>
+                ఆదర్శ వార్తలు
+              </span>
+            </div>
           </Link>
           {ads?.banner?.imageUrl ? (
             <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="header-ad" style={{ padding: 0, background: 'transparent', border: 'none' }}>
@@ -331,12 +334,17 @@ function App() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-               <div className="logo" style={{ color: '#fff', marginBottom: '15px' }}>
-                 {settings?.logoImage ? (
-                   <img src={`https://adarshapaper.in${settings.logoImage}`} alt="Adarsha News" style={{ maxHeight: '60px', filter: 'brightness(0) invert(1)' }} />
-                 ) : (
-                   <>ఆదర్శ<span>వార్తలు</span></>
-                 )}
+               <div className="logo" style={{ marginBottom: '15px' }}>
+                 <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1' }}>
+                      <span style={{ fontSize: '1.5rem', fontWeight: '900', color: '#fff', letterSpacing: '-1px' }}>
+                        ADARSHA <span style={{ color: 'var(--primary-color)' }}>NEWS</span>
+                      </span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#888', marginTop: '2px', letterSpacing: '1px' }}>
+                        ఆదర్శ వార్తలు
+                      </span>
+                    </div>
+                 </Link>
                </div>
                <p>Your trusted source for the latest news in Telugu. 100% original, fast, and unbiased updates.</p>
             </div>
