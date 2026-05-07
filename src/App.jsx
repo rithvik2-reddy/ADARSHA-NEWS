@@ -256,10 +256,14 @@ function App() {
   const [categoryNews, setCategoryNews] = useState({});
   const [activeCategory, setActiveCategory] = useState('Latest');
   const [ads, setAds] = useState(null);
+  const [settings, setSettings] = useState(null);
   const t = translations[lang];
 
   useEffect(() => {
-    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
+    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => {
+      setSettings(res.data);
+      setAds(res.data.newsAds);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -303,7 +307,13 @@ function App() {
       </header>
       <header className="header-main">
         <div className="container">
-          <Link to="/" className="logo">ఆదర్శ<span>వార్తలు</span></Link>
+          <Link to="/" className="logo">
+            {settings?.logoImage ? (
+              <img src={`https://adarshapaper.in${settings.logoImage}`} alt="Adarsha News" style={{ maxHeight: '70px', display: 'block' }} />
+            ) : (
+              <>ఆదర్శ<span>వార్తలు</span></>
+            )}
+          </Link>
           {ads?.banner?.imageUrl ? (
             <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="header-ad" style={{ padding: 0, background: 'transparent', border: 'none' }}>
               <img src={ads.banner.imageUrl.startsWith('http') ? ads.banner.imageUrl : `https://adarshapaper.in${ads.banner.imageUrl}`} alt="Advertisement" style={{ maxHeight: '90px', borderRadius: '4px' }} />
@@ -321,7 +331,13 @@ function App() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-               <div className="logo" style={{ color: '#fff', marginBottom: '15px' }}>ఆదర్శ<span>వార్తలు</span></div>
+               <div className="logo" style={{ color: '#fff', marginBottom: '15px' }}>
+                 {settings?.logoImage ? (
+                   <img src={`https://adarshapaper.in${settings.logoImage}`} alt="Adarsha News" style={{ maxHeight: '60px', filter: 'brightness(0) invert(1)' }} />
+                 ) : (
+                   <>ఆదర్శ<span>వార్తలు</span></>
+                 )}
+               </div>
                <p>Your trusted source for the latest news in Telugu. 100% original, fast, and unbiased updates.</p>
             </div>
             <div className="footer-links"><h3>{t.aboutUs}</h3><ul><li><Link to="/">Privacy Policy</Link></li><li><Link to="/">Terms of Service</Link></li><li><Link to="/">Disclaimer</Link></li></ul></div>
