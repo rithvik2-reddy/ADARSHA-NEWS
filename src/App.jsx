@@ -50,35 +50,7 @@ const translations = {
 // GitHub Actions updates this every 30 minutes automatically — no PC or server needed!
 const NEWS_DATA_URL = "https://raw.githubusercontent.com/rithvik2-reddy/ADARSHA-NEWS/master/public/news-data.json";
 
-const Home = ({ lang, t, setLatestNews, latestNews }) => {
-  const [categoryNews, setCategoryNews] = useState({});
-  const [activeCategory, setActiveCategory] = useState('Latest');
-
-  // Load all news from the GitHub JSON file once
-  const [allNews, setAllNews] = useState([]);
-
-  useEffect(() => {
-    axios.get(NEWS_DATA_URL)
-      .then(res => {
-        const data = Array.isArray(res.data) ? res.data : [];
-        setAllNews(data);
-        // Set latest 6 for ticker and hero section
-        setLatestNews(data.slice(0, 6));
-      })
-      .catch(err => console.error('Failed to load news:', err));
-  }, []);
-
-  useEffect(() => {
-    if (allNews.length === 0) return;
-    let filtered;
-    if (activeCategory === 'Latest') {
-      filtered = allNews.slice(0, 24);
-    } else {
-      filtered = allNews.filter(n => n.category === activeCategory).slice(0, 24);
-    }
-    setCategoryNews(prev => ({ ...prev, [activeCategory]: filtered }));
-  }, [activeCategory, allNews]);
-
+const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory, categoryNews }) => {
   const formatDate = (dateString) => {
     const d = new Date(dateString);
     return d.toLocaleDateString(lang === 'te' ? 'te-IN' : 'en-US', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
@@ -216,12 +188,42 @@ const ArticleView = ({ lang, t }) => {
 function App() {
   const [lang, setLang] = useState('te');
   const [latestNews, setLatestNews] = useState([]);
+  const [allNews, setAllNews] = useState([]);
+  const [categoryNews, setCategoryNews] = useState({});
+  const [activeCategory, setActiveCategory] = useState('Latest');
   const [ads, setAds] = useState(null);
   const t = translations[lang];
 
   useEffect(() => {
     axios.get('https://adarshapaper.in/settings.json').then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await axios.get(`${NEWS_DATA_URL}?v=${Date.now()}`);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setAllNews(data);
+        setLatestNews(data.slice(0, 8));
+      } catch (err) {
+        console.error('Failed to load news:', err);
+      } finally {
+        if (window.__hideSplash) window.__hideSplash();
+      }
+    };
+    fetchNews();
+  }, []);
+
+  useEffect(() => {
+    if (allNews.length === 0) return;
+    let filtered;
+    if (activeCategory === 'Latest') {
+      filtered = allNews.slice(0, 24);
+    } else {
+      filtered = allNews.filter(n => n.category === activeCategory).slice(0, 24);
+    }
+    setCategoryNews(prev => ({ ...prev, [activeCategory]: filtered }));
+  }, [activeCategory, allNews]);
 
   return (
     <div className="app">
@@ -237,7 +239,7 @@ function App() {
       </header>
       <header className="header-main">
         <div className="container">
-          <Link to="/" className="logo">ADARSHA<span>NEWS</span></Link>
+          <Link to="/" className="logo">ఆదర్శ<span>NEWS</span></Link>
           {ads?.banner?.imageUrl ? (
             <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="header-ad" style={{ padding: 0, background: 'transparent', border: 'none' }}>
               <img src={ads.banner.imageUrl.startsWith('http') ? ads.banner.imageUrl : `https://adarshapaper.in${ads.banner.imageUrl}`} alt="Advertisement" style={{ maxHeight: '90px', borderRadius: '4px' }} />
@@ -248,14 +250,14 @@ function App() {
         </div>
       </header>
       <Routes>
-        <Route path="/" element={<Home lang={lang} t={t} setLatestNews={setLatestNews} latestNews={latestNews} />} />
+        <Route path="/" element={<Home lang={lang} t={t} latestNews={latestNews} allNews={allNews} activeCategory={activeCategory} setActiveCategory={setActiveCategory} categoryNews={categoryNews} />} />
         <Route path="/article/:id" element={<ArticleView lang={lang} t={t} />} />
       </Routes>
       <footer>
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-               <div className="logo" style={{ color: '#fff', marginBottom: '15px' }}>ADARSHA<span>NEWS</span></div>
+               <div className="logo" style={{ color: '#fff', marginBottom: '15px' }}>ఆదర్శ<span>NEWS</span></div>
                <p>Your trusted source for the latest news in Telugu. 100% original, fast, and unbiased updates.</p>
             </div>
             <div className="footer-links"><h3>{t.aboutUs}</h3><ul><li><Link to="/">Privacy Policy</Link></li><li><Link to="/">Terms of Service</Link></li><li><Link to="/">Disclaimer</Link></li></ul></div>
