@@ -254,7 +254,7 @@ async function run() {
                 };
             }
 
-            const topItems = fetchedData.items.slice(0, 8);
+            const topItems = fetchedData.items.slice(0, 15);
 
             for (const item of topItems) {
                 if (existingLinks.has(item.link)) continue;

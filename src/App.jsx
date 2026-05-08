@@ -119,31 +119,89 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
 
       <main className="container">
         {activeCategory === 'Latest' && latestNews.length > 0 && (
-          <section className="hero-section">
-            <Link to={`/article/${latestNews[0].id}`} className="hero-main-article">
-              <img src={latestNews[0].imageUrl} alt={latestNews[0].title} />
-              <div className="hero-content">
-                <span className="category-tag">{t[latestNews[0].category?.toLowerCase()] || latestNews[0].category}</span>
-                <h1>{latestNews[0].title}</h1>
-                <div className="timestamp"><Clock size={14}/> {formatDate(latestNews[0].pubDate)}</div>
+          <>
+            <section className="hero-section">
+              <Link to={`/article/${latestNews[0].id}`} className="hero-main-article">
+                <img src={latestNews[0].imageUrl} alt={latestNews[0].title} />
+                <div className="hero-content">
+                  <span className="category-tag">{t[latestNews[0].category?.toLowerCase()] || latestNews[0].category}</span>
+                  <h1>{latestNews[0].title}</h1>
+                  <div className="timestamp"><Clock size={14}/> {formatDate(latestNews[0].pubDate)}</div>
+                </div>
+              </Link>
+              <div className="hero-side-articles">
+                {latestNews.slice(1, 5).map((news) => (
+                   <Link to={`/article/${news.id}`} key={news.id} className="side-article">
+                     <img src={news.imageUrl} alt={news.title} />
+                     <div>
+                       <h3>{news.title}</h3>
+                       <div className="timestamp"><Clock size={12}/> {formatDate(news.pubDate)}</div>
+                     </div>
+                   </Link>
+                ))}
               </div>
-            </Link>
-            <div className="hero-side-articles">
-              {latestNews.slice(1, 5).map((news) => (
-                 <Link to={`/article/${news.id}`} key={news.id} className="side-article">
-                   <img src={news.imageUrl} alt={news.title} />
-                   <div>
-                     <h3>{news.title}</h3>
-                     <div className="timestamp"><Clock size={12}/> {formatDate(news.pubDate)}</div>
-                   </div>
-                 </Link>
-              ))}
-            </div>
-          </section>
+            </section>
+
+            {/* Trending Section */}
+            <section style={{ marginTop: '30px' }}>
+              <h2 className="section-title">{lang === 'te' ? 'ట్రెండింగ్' : 'Trending'}</h2>
+              <div className="trending-row">
+                {allNews.slice(5, 15).map(news => (
+                  <Link to={`/article/${news.id}`} key={news.id} className="trending-item">
+                    <img src={news.imageUrl} alt={news.title} />
+                    <h4>{news.title}</h4>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* Category Highlights */}
+            {['National', 'World', 'Sports', 'Entertainment'].map(cat => (
+              categoryNews[cat] && categoryNews[cat].length > 0 && (
+                <section key={cat} className="category-row-section">
+                  <div className="category-row-header">
+                    <h2 className="section-title">{t[cat.toLowerCase()] || cat}</h2>
+                    <a onClick={() => {setActiveCategory(cat); window.scrollTo(0,0);}} className="view-all">{lang === 'te' ? 'అన్నీ చూడండి' : 'View All'} &rarr;</a>
+                  </div>
+                  <div className="news-grid">
+                    {categoryNews[cat].slice(0, 4).map(news => (
+                      <Link to={`/article/${news.id}`} key={news.id} className="news-card">
+                        <div className="news-card-img-wrapper">
+                          <img src={news.imageUrl} alt={news.title} />
+                        </div>
+                        <div className="news-card-content">
+                          <h3 className="news-card-title">{news.title}</h3>
+                          <div className="timestamp"><Clock size={12}/> {formatDate(news.pubDate)}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )
+            ))}
+
+            {/* More Stories List */}
+            <section style={{ marginTop: '40px' }}>
+              <h2 className="section-title">{lang === 'te' ? 'మరిన్ని వార్తలు' : 'More Stories'}</h2>
+              <div className="compact-list">
+                {allNews.slice(15, 30).map(news => (
+                  <Link to={`/article/${news.id}`} key={news.id} className="compact-card">
+                    <img src={news.imageUrl} alt={news.title} />
+                    <div className="compact-card-content">
+                      <span className="category-tag" style={{fontSize:'0.55rem'}}>{t[news.category?.toLowerCase()] || news.category}</span>
+                      <h3 className="compact-card-title">{news.title}</h3>
+                      <div className="timestamp"><Clock size={12}/> {formatDate(news.pubDate)}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </>
         )}
 
-        <section style={{ marginTop: '40px' }}>
-          <h2 className="section-title">{activeCategory === 'Latest' ? t.latest : (t[activeCategory.toLowerCase()] || activeCategory)} {lang === 'te' ? 'వార్తలు' : 'News'}</h2>
+        {activeCategory !== 'Latest' && (
+          <section style={{ marginTop: '40px' }}>
+            <h2 className="section-title">{t[activeCategory.toLowerCase()] || activeCategory} {lang === 'te' ? 'వార్తలు' : 'News'}</h2>
           <div className="news-grid">
             {currentFeed.map((news) => (
               <Link 
@@ -170,7 +228,8 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               </Link>
             ))}
           </div>
-        </section>
+          </section>
+        )}
       </main>
     </>
   );
@@ -301,7 +360,7 @@ function App() {
       try {
         const data = JSON.parse(cachedNews);
         setAllNews(data);
-        setLatestNews(data.slice(0, 10));
+        setLatestNews(data.slice(0, 20));
         const categories = {};
         data.forEach(item => {
           const cat = item.category || 'Latest';
@@ -320,7 +379,7 @@ function App() {
         const data = Array.isArray(res.data) ? res.data : [];
         if (data.length > 0) {
           setAllNews(data);
-          setLatestNews(data.slice(0, 10));
+          setLatestNews(data.slice(0, 20));
           
           const categories = {};
           data.forEach(item => {
