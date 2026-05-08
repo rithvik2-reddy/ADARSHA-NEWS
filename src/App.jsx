@@ -62,19 +62,29 @@ function sanitizeArticleHtml(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
-  doc.querySelectorAll('script, style, iframe, .app-download-banner, .sakshi-play-store, .source-branding, .footer-credits').forEach((el) => el.remove());
+  // Remove common Sakshi ad classes and elements
+  doc.querySelectorAll('script, style, iframe, .app-download-banner, .sakshi-play-store, .source-branding, .footer-credits, .sakshi-mobile-apps, [class*="sakshi"]').forEach((el) => el.remove());
 
+  // Remove links to Sakshi and app stores
   doc.querySelectorAll('a').forEach((a) => {
     const href = (a.getAttribute('href') || '').toLowerCase();
     const text = (a.textContent || '').toLowerCase();
     if (
+      href.includes('sakshi.com') ||
       href.includes('play.google.com') ||
       href.includes('apps.apple.com') ||
-      href.includes('sakshi.com/apps') ||
       text.includes('play store') ||
-      text.includes('download app')
+      text.includes('download app') ||
+      text.includes('సాక్షి')
     ) {
       a.remove();
+    }
+  });
+
+  doc.querySelectorAll('img').forEach((img) => {
+    const src = (img.getAttribute('src') || '').toLowerCase();
+    if (src.includes('sakshi-mobile-apps') || src.includes('stickey') || src.includes('s3fs-public') || src.includes('sakshi')) {
+      img.remove();
     }
   });
 
@@ -90,6 +100,7 @@ function sanitizeArticleHtml(html) {
   return doc.body.innerHTML
     .replace(/<p>\s*Download[^<]*<\/p>/gi, '')
     .replace(/<p>\s*Google Play[^<]*<\/p>/gi, '')
+    .replace(/సాక్షి/g, 'ఆదర్శ')
     .trim();
 }
 
@@ -116,6 +127,15 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
           </ul>
         </div>
       </nav>
+      <div className="sub-nav">
+        <div className="container">
+          <ul>
+             {['Hyderabad', 'Andhra Pradesh', 'Telangana', 'Cinema', 'Auto', 'Health', 'Lifestyle'].map(item => (
+                <li key={item}><a href="#">{item}</a></li>
+             ))}
+          </ul>
+        </div>
+      </div>
 
       <main className="container">
         {activeCategory === 'Latest' && latestNews.length > 0 && (
@@ -142,7 +162,6 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               </div>
             </section>
 
-            {/* Trending Section */}
             <section style={{ marginTop: '30px' }}>
               <h2 className="section-title">{lang === 'te' ? 'ట్రెండింగ్' : 'Trending'}</h2>
               <div className="trending-row">
@@ -155,7 +174,6 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               </div>
             </section>
 
-            {/* Category Highlights */}
             {['National', 'World', 'Sports', 'Entertainment'].map(cat => (
               categoryNews[cat] && categoryNews[cat].length > 0 && (
                 <section key={cat} className="category-row-section">
@@ -180,7 +198,6 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               )
             ))}
 
-            {/* More Stories List */}
             <section style={{ marginTop: '40px' }}>
               <h2 className="section-title">{lang === 'te' ? 'మరిన్ని వార్తలు' : 'More Stories'}</h2>
               <div className="compact-list">
@@ -209,7 +226,6 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
                 key={news.id} 
                 className="news-card"
                 onMouseEnter={() => {
-                  // Prefetch image to browser cache
                   const img = new Image();
                   img.src = news.imageUrl;
                 }}
@@ -247,35 +263,30 @@ const SkeletonArticle = () => (
   </main>
 );
 
-
 const ArticleView = ({ lang, t, allNews }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [ads, setAds] = useState(null);
 
-  // SYNCHRONOUS lookup - zero delay if data already loaded
   const [article, setArticle] = useState(() => {
     if (allNews && allNews.length > 0) {
       return allNews.find(n => n.id === id) || null;
     }
     return null;
   });
-  const [loading, setLoading] = useState(!article); // Only true if not found instantly
+  const [loading, setLoading] = useState(!article);
 
   useEffect(() => {
-    // Load ads from adarshapaper.in settings (non-blocking)
     axios.get('https://adarshapaper.in/settings.json', { timeout: 8000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
-    // If article was found synchronously, just scroll
     if (article) {
       window.scrollTo(0, 0);
       setLoading(false);
       return;
     }
 
-    // Fallback: fetch from GitHub (e.g. direct URL entry or page refresh)
     setLoading(true);
     axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 12000 })
       .then(res => {
@@ -354,7 +365,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // 1. Try to load from Cache first for INSTANT startup
     const cachedNews = localStorage.getItem('adarsha_news_cache');
     if (cachedNews) {
       try {
@@ -389,7 +399,6 @@ function App() {
           });
           setCategoryNews(categories);
           
-          // Save to cache for next time
           localStorage.setItem('adarsha_news_cache', JSON.stringify(data));
         }
       } catch (err) {

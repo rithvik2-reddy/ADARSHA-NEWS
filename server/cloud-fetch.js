@@ -70,7 +70,7 @@ function cleanContent(html) {
         '.app-download-banner', '.footer-credits', '.source-branding',
         '.sakshi-play-store', '.social-share-strip', 'script', 'style', 'iframe',
         '.ad-container', '.sponsored-content', 'button', '.newsletter-signup',
-        '.download-app', '.google-play-link', '.appstore-link'
+        '.download-app', '.google-play-link', '.appstore-link', '.sakshi-mobile-apps'
     ];
     selectorsToRemove.forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
@@ -79,37 +79,39 @@ function cleanContent(html) {
         });
     });
 
-    // 2. Remove all external app links (Play Store, App Store)
+    // 2. Remove all external app links and Sakshi links
     const links = doc.querySelectorAll('a');
     links.forEach(link => {
         const href = link.getAttribute('href') || '';
         const text = (link.textContent || '').toLowerCase();
         if (
+            href.includes('sakshi.com') ||
             href.includes('play.google.com') ||
             href.includes('apps.apple.com') ||
             href.includes('apple.com/app-store') ||
-            href.includes('sakshi.com/apps') ||
             text.includes('play store') ||
-            text.includes('download app')
+            text.includes('download app') ||
+            text.includes('సాక్షి')
         ) {
-            logRemoval('external-app-link', href || text);
+            logRemoval('branding-link', href || text);
             link.remove();
         }
     });
 
-    // 3. Remove all images that look like app banners or ads
+    // 3. Remove all images that look like app banners or Sakshi logos
     const imgs = doc.querySelectorAll('img');
     imgs.forEach(img => {
         const alt = (img.getAttribute('alt') || '').toLowerCase();
         const src = (img.getAttribute('src') || '').toLowerCase();
         if (alt.includes('download') || alt.includes('app') || alt.includes('sakshi') || 
-            src.includes('playstore') || src.includes('appstore') || src.includes('banner')) {
+            src.includes('playstore') || src.includes('appstore') || src.includes('banner') ||
+            src.includes('sakshi-mobile-apps') || src.includes('stickey')) {
             logRemoval('promo-image', src || alt);
             img.remove();
         }
     });
 
-    // 4. Remove intro/footer branding blocks only (avoid global body replacements).
+    // 4. Remove intro/footer branding blocks
     const introOrFooterPatterns = [
         /^సాక్షి[,:\s-]/i,
         /^sakshi[,:\s-]/i,
@@ -130,20 +132,10 @@ function cleanContent(html) {
         }
     });
 
-    // 5. Strip leftover intro lines from HTML only for known start patterns.
+    // 5. Global text replacement for any remaining branding
     let finalHtml = doc.body.innerHTML;
-    const introPatterns = [
-        /^<p>\s*సాక్షి,\s*[^:]+:\s*<\/p>/i,
-        /^<p>\s*సాక్షి ప్రతినిధి[^:]*:\s*<\/p>/i,
-        /^<p>\s*Sakshi,\s*[^:]+:\s*<\/p>/i
-    ];
-    introPatterns.forEach(pattern => {
-        finalHtml = finalHtml.replace(pattern, "");
-    });
-
-    if (sanitizationLog.length > 0) {
-        console.log(`[sanitize] removed ${sanitizationLog.length} elements`);
-    }
+    finalHtml = finalHtml.replace(/సాక్షి/g, "ఆదర్శ");
+    finalHtml = finalHtml.replace(/Sakshi/g, "Adarsha");
 
     return finalHtml.trim();
 }
@@ -263,11 +255,18 @@ async function run() {
                 const scraped = await scrapeArticle(item.link);
 
                 let imageUrl = scraped.image || "";
+                
+                // Final safety for image selection: remove ads or branded placeholders
+                if (imageUrl.includes('Sakshi-Mobile-Apps') || imageUrl.includes('stickey') || imageUrl.includes('app-download')) {
+                    imageUrl = "";
+                }
+
                 if (!imageUrl && scraped.htmlContent) {
                     const imgMatch = scraped.htmlContent.match(/<img[^>]+src="([^">]+)"/);
-                    if (imgMatch) imageUrl = imgMatch[1];
+                    if (imgMatch && !imgMatch[1].includes('Sakshi-Mobile-Apps')) imageUrl = imgMatch[1];
                 }
                 if (!imageUrl && item.enclosure?.url) imageUrl = item.enclosure.url;
+                
                 if (!imageUrl || imageUrl === "undefined") {
                     imageUrl = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000';
                 }
