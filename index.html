@@ -4,24 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ఆదర్శ వార్తలు v1.5 - తాజా తెలుగు వార్తలు</title>
+    <title>ఆదర్శ వార్తలు - తాజా తెలుగు వార్తలు</title>
     <style>
-      #emergency-banner { background: red; color: white; padding: 10px; text-align: center; position: fixed; top: 0; width: 100%; z-index: 1000000; font-weight: bold; }
-      .preloader { display: none !important; } /* FORCE REMOVE PRELOADER */
+      .preloader { display: none !important; }
     </style>
   </head>
   <body>
-    <div id="emergency-banner">V1.5 DEPLOYED - IF YOU SEE THIS, UPDATE WORKED!</div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Clear splash screen immediately
+      // Force hide any splash screen
       setTimeout(() => {
         const s = document.getElementById('splash');
         if (s) s.remove();
       }, 100);
     </script>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
