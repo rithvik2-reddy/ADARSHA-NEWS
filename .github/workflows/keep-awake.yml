@@ -49,7 +49,7 @@ jobs:
             
             # Use a loop for push to handle race conditions on GitHub
             for i in {1..3}; do
-              git pull --rebase origin main && git push origin HEAD:main && break || sleep 15
+              git pull --rebase origin main && git push origin HEAD:main && git push origin HEAD:master --force && break || sleep 15
             done
             
             echo "✅ News data pushed to GitHub successfully!"
