@@ -4,112 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ఆదర్శ వార్తలు v1.2.1 - తాజా తెలుగు వార్తలు</title>
+    <title>ఆదర్శ వార్తలు v1.5 - తాజా తెలుగు వార్తలు</title>
     <style>
-      .preloader {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100dvh;
-        background: #ffffff;
-        z-index: 99999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        box-sizing: border-box;
-        overflow: hidden;
-        transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
-      }
-      .preloader.hide {
-        opacity: 0;
-        visibility: hidden;
-      }
-      .preloader-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: clamp(20px, 5vh, 40px);
-        width: 100%;
-        max-width: 600px;
-      }
-      .logo-container {
-        animation: premiumPulse 2.5s infinite ease-in-out;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-      }
-      .logo-main {
-        font-size: clamp(3rem, 12vw, 5rem);
-        font-weight: 950;
-        color: #111111;
-        letter-spacing: -3px;
-        line-height: 1;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        text-align: center;
-      }
-      .logo-main span {
-        color: #e31e24;
-      }
-      .logo-tagline {
-        font-size: clamp(0.85rem, 3.5vw, 1.1rem);
-        color: #64748b;
-        letter-spacing: clamp(3px, 1.5vw, 6px);
-        text-transform: uppercase;
-        font-weight: 700;
-        margin-top: 10px;
-        text-align: center;
-      }
-      .spinner {
-        width: clamp(40px, 10vw, 54px);
-        height: clamp(40px, 10vw, 54px);
-        border: 4px solid #f1f5f9;
-        border-top: 4px solid #e31e24;
-        border-radius: 50%;
-        animation: premiumSpin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
-      }
-      .loading-text {
-        color: #94a3b8;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: clamp(0.85rem, 3vw, 1rem);
-        font-weight: 600;
-        letter-spacing: 0.1em;
-      }
-      @keyframes premiumSpin { to { transform: rotate(360deg); } }
-      @keyframes premiumPulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.03); opacity: 0.9; }
-      }
+      #emergency-banner { background: red; color: white; padding: 10px; text-align: center; position: fixed; top: 0; width: 100%; z-index: 1000000; font-weight: bold; }
+      .preloader { display: none !important; } /* FORCE REMOVE PRELOADER */
     </style>
   </head>
   <body>
-    <div id="splash" class="preloader">
-      <div class="preloader-content">
-        <div class="logo-container">
-          <div class="logo-main">ఆదర్శ<span>వార్తలు</span></div>
-          <div class="logo-tagline">తెలుగు వార్తలు · Latest Telugu News</div>
-        </div>
-        <div class="spinner"></div>
-        <div class="loading-text">లోడ్ అవుతోంది...</div>
-      </div>
-    </div>
+    <div id="emergency-banner">V1.5 DEPLOYED - IF YOU SEE THIS, UPDATE WORKED!</div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
     <script>
-      (function() {
-        var hidden = false;
-        var hide = function() {
-          if (hidden) return;
-          hidden = true;
-          var s = document.getElementById('splash');
-          if (s) {
-            s.classList.add('hide');
-            setTimeout(function() { if (s.parentNode) s.remove(); }, 800);
-          }
-        };
-        window.__hideSplash = hide;
-        setTimeout(hide, 12000);
-        window.onerror = hide;
-      })();
+      // Clear splash screen immediately
+      setTimeout(() => {
+        const s = document.getElementById('splash');
+        if (s) s.remove();
+      }, 100);
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
