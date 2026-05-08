@@ -40,9 +40,17 @@ jobs:
           git config --global user.name "Adarsha News Bot"
           git config --global user.email "bot@adarshanews.com"
           git add public/news-data.json
-          git diff --staged --quiet && echo "No new articles to commit." || (
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No new articles to commit."
+          else
             git commit -m "🤖 Auto Update: New articles [$(date '+%Y-%m-%d %H:%M')]"
-            git pull --rebase origin master
-            git push origin HEAD:master
+            
+            # Use a loop for push to handle race conditions on GitHub
+            for i in {1..3}; do
+              git pull --rebase origin master && git push origin HEAD:master && break || sleep 15
+            done
+            
             echo "✅ News data pushed to GitHub successfully!"
-          )
+          fi

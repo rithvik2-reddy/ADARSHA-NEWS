@@ -16,6 +16,8 @@ require('dotenv').config();
 
 if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️  GEMINI_API_KEY is missing! AI rewriting will be skipped.");
+} else {
+    console.log("✅ GEMINI_API_KEY found. AI features enabled.");
 }
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -202,7 +204,11 @@ async function run() {
     console.log(`[${new Date().toISOString()}] ☁️  GitHub Actions Cloud Fetch Starting...`);
 
     const publicDir = path.dirname(OUTPUT_PATH);
-    if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+    console.log(`Targeting output path: ${OUTPUT_PATH}`);
+    if (!fs.existsSync(publicDir)) {
+        console.log(`Creating public directory: ${publicDir}`);
+        fs.mkdirSync(publicDir, { recursive: true });
+    }
 
     // Load existing news to avoid duplicates
     let existingNews = [];
@@ -245,10 +251,17 @@ async function run() {
                 let finalTitle = cleanTitle(item.title);
                 let finalContent = scraped.htmlContent || `<p>${item.contentSnippet || item.title}</p>`;
 
-                const aiResult = await aiRewrite(item.title, scraped.content || item.contentSnippet || item.title);
-                if (aiResult) {
-                    finalTitle = aiResult.newTitle;
-                    finalContent = aiResult.newContent;
+                try {
+                    const aiResult = await aiRewrite(item.title, scraped.content || item.contentSnippet || item.title);
+                    if (aiResult) {
+                        finalTitle = aiResult.newTitle;
+                        finalContent = aiResult.newContent;
+                        console.log(`   ✨ AI Rewrote: ${finalTitle}`);
+                    } else {
+                        console.log(`   ⏩ AI Skip (Using Original): ${finalTitle}`);
+                    }
+                } catch (aiErr) {
+                    console.warn(`   ⚠️ AI Error for "${item.title}":`, aiErr.message);
                 }
                 
                 // Final safety sanitization for content

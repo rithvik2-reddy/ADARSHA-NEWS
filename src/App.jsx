@@ -146,7 +146,16 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
           <h2 className="section-title">{activeCategory === 'Latest' ? t.latest : (t[activeCategory.toLowerCase()] || activeCategory)} {lang === 'te' ? 'వార్తలు' : 'News'}</h2>
           <div className="news-grid">
             {currentFeed.map((news) => (
-              <Link to={`/article/${news.id}`} key={news.id} className="news-card">
+              <Link 
+                to={`/article/${news.id}`} 
+                key={news.id} 
+                className="news-card"
+                onMouseEnter={() => {
+                  // Prefetch image to browser cache
+                  const img = new Image();
+                  img.src = news.imageUrl;
+                }}
+              >
                 <div className="news-card-img-wrapper">
                   <span className="category-tag" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}>{t[news.category?.toLowerCase()] || news.category}</span>
                   <img src={news.imageUrl} alt={news.title} loading="lazy" />
@@ -179,30 +188,49 @@ const SkeletonArticle = () => (
   </main>
 );
 
-const ArticleView = ({ lang, t }) => {
+
+const ArticleView = ({ lang, t, allNews }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState(null);
 
+  // SYNCHRONOUS lookup - zero delay if data already loaded
+  const [article, setArticle] = useState(() => {
+    if (allNews && allNews.length > 0) {
+      return allNews.find(n => n.id === id) || null;
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(!article); // Only true if not found instantly
+
   useEffect(() => {
-    // Load ads from adarshapaper.in settings
-    axios.get('https://adarshapaper.in/settings.json', { timeout: 10000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
+    // Load ads from adarshapaper.in settings (non-blocking)
+    axios.get('https://adarshapaper.in/settings.json', { timeout: 8000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
+    // If article was found synchronously, just scroll
+    if (article) {
+      window.scrollTo(0, 0);
+      setLoading(false);
+      return;
+    }
+
+    // Fallback: fetch from GitHub (e.g. direct URL entry or page refresh)
     setLoading(true);
-    // Read article directly from the GitHub-hosted JSON
-    axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 10000 })
+    axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 12000 })
       .then(res => {
         const data = Array.isArray(res.data) ? res.data : [];
         const found = data.find(n => n.id === id);
-        if (found) { setArticle(found); window.scrollTo(0, 0); }
+        if (found) {
+          setArticle(found);
+          window.scrollTo(0, 0);
+        }
         setLoading(false);
       })
       .catch(err => { console.error(err); setLoading(false); });
   }, [id]);
+
   const sanitizedHtml = useMemo(() => sanitizeArticleHtml(article?.articleContent || ''), [article?.articleContent]);
 
   if (loading) return <SkeletonArticle />;
@@ -328,7 +356,7 @@ function App() {
       </header>
       <Routes>
         <Route path="/" element={<Home lang={lang} t={t} latestNews={latestNews} allNews={allNews} activeCategory={activeCategory} setActiveCategory={setActiveCategory} categoryNews={categoryNews} />} />
-        <Route path="/article/:id" element={<ArticleView lang={lang} t={t} />} />
+        <Route path="/article/:id" element={<ArticleView lang={lang} t={t} allNews={allNews} />} />
       </Routes>
       <footer>
         <div className="container">
