@@ -174,6 +174,7 @@ async function scrapeArticle(url) {
         const sanitizedText = article ? article.textContent.trim() : "";
 
         return {
+            title: article ? article.title : "",
             content: sanitizedText,
             htmlContent: sanitizedHtml,
             image: image || ""
@@ -229,8 +230,31 @@ async function run() {
 
     for (const feed of RSS_FEEDS) {
         try {
-            const fetchedData = await parser.parseURL(feed.url);
-            const topItems = fetchedData.items.slice(0, 5);
+            let fetchedData;
+            try {
+                fetchedData = await parser.parseURL(feed.url);
+            } catch (rssErr) {
+                console.log(`[RSS Fallback] ${feed.url} failed, trying HTML scraping...`);
+                // Fallback: Fetch as HTML and extract links
+                const res = await axios.get(feed.url, { 
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+                    timeout: 10000 
+                });
+                const html = res.data;
+                const linkRegex = /href="([^"]+\/telugu-news\/[^"]+-\d+)"/g;
+                const matches = [...html.matchAll(linkRegex)];
+                const links = [...new Set(matches.map(m => m[1]))];
+                
+                fetchedData = {
+                    items: links.map(link => ({
+                        link,
+                        title: "News Update", // Will be updated by scrapeArticle
+                        pubDate: new Date().toISOString()
+                    }))
+                };
+            }
+
+            const topItems = fetchedData.items.slice(0, 8);
 
             for (const item of topItems) {
                 if (existingLinks.has(item.link)) continue;
@@ -248,7 +272,7 @@ async function run() {
                     imageUrl = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000';
                 }
 
-                let finalTitle = cleanTitle(item.title);
+                let finalTitle = cleanTitle(scraped.title || item.title);
                 let finalContent = scraped.htmlContent || `<p>${item.contentSnippet || item.title}</p>`;
 
                 try {

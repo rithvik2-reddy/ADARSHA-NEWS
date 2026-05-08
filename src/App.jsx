@@ -340,7 +340,7 @@ function App() {
     fetchNews();
   }, []);
 
-    if (allNews.length === 0) return;
+  useEffect(() => {
     let filtered;
     if (activeCategory === 'Latest') {
       filtered = allNews.slice(0, 24);
@@ -348,7 +348,7 @@ function App() {
       filtered = allNews.filter(n => n.category === activeCategory).slice(0, 24);
     }
     setCategoryNews(prev => ({ ...prev, [activeCategory]: filtered }));
-  }, [activeCategory, allNews]);
+  }, [activeCategory, allNews, lang]);
 
   return (
     <div className="app">
