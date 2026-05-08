@@ -295,22 +295,51 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // 1. Try to load from Cache first for INSTANT startup
+    const cachedNews = localStorage.getItem('adarsha_news_cache');
+    if (cachedNews) {
+      try {
+        const data = JSON.parse(cachedNews);
+        setAllNews(data);
+        setLatestNews(data.slice(0, 10));
+        const categories = {};
+        data.forEach(item => {
+          const cat = item.category || 'Latest';
+          if (!categories[cat]) categories[cat] = [];
+          categories[cat].push(item);
+        });
+        setCategoryNews(categories);
+      } catch (e) {
+        console.error("Cache parse error", e);
+      }
+    }
+
     const fetchNews = async () => {
       try {
-        const res = await axios.get(`${NEWS_DATA_URL}?v=${Date.now()}`, { timeout: 10000 });
+        const res = await axios.get(`${NEWS_DATA_URL}?v=${Date.now()}`, { timeout: 15000 });
         const data = Array.isArray(res.data) ? res.data : [];
-        setAllNews(data);
-        setLatestNews(data.slice(0, 8));
+        if (data.length > 0) {
+          setAllNews(data);
+          setLatestNews(data.slice(0, 10));
+          
+          const categories = {};
+          data.forEach(item => {
+            const cat = item.category || 'Latest';
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(item);
+          });
+          setCategoryNews(categories);
+          
+          // Save to cache for next time
+          localStorage.setItem('adarsha_news_cache', JSON.stringify(data));
+        }
       } catch (err) {
-        console.error('Failed to load news:', err);
-      } finally {
-        if (window.__hideSplash) window.__hideSplash();
+        console.error("Fetch error", err);
       }
     };
     fetchNews();
   }, []);
 
-  useEffect(() => {
     if (allNews.length === 0) return;
     let filtered;
     if (activeCategory === 'Latest') {
