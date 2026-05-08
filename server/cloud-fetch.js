@@ -319,7 +319,7 @@ async function run() {
         const updatedNews = [
             ...newArticles,
             ...existingNews.filter(old => !existingLinks.has(old.link))
-        ].slice(0, 100);
+        ].slice(0, 200);
 
         // Make sure the public directory exists
         const publicDir = path.dirname(OUTPUT_PATH);

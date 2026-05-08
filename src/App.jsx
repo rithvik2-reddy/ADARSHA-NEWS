@@ -74,21 +74,6 @@ const SOURCE_LINE_PATTERNS = [
   /^sakshi representative/i
 ];
 
-const BRANDING_KEYWORDS = [
-  'Sakshi-Mobile-Apps', 
-  'stickey', 
-  'app-download', 
-  'google-play', 
-  'app-store', 
-  'branding', 
-  's3fs-public',
-  'logo-white',
-  'logo-black',
-  'logo.png',
-  'logo.jpg',
-  'sakshi-apps'
-];
-
 function isBrandedImage(url) {
   if (!url) return false;
   const lower = url.toLowerCase();
