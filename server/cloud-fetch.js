@@ -315,15 +315,18 @@ async function run() {
     }
 
     if (addedCount > 0) {
-        // Merge new articles at the top, keep only last 500 to avoid huge files
-        const allNews = [...newArticles, ...existingNews].slice(0, 500);
+        // Keep only latest 100 articles to maintain high speed
+        const updatedNews = [
+            ...newArticles,
+            ...existingNews.filter(old => !existingLinks.has(old.link))
+        ].slice(0, 100);
 
         // Make sure the public directory exists
         const publicDir = path.dirname(OUTPUT_PATH);
         if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
-        fs.writeFileSync(OUTPUT_PATH, JSON.stringify(allNews, null, 2), 'utf-8');
-        console.log(`✅ ${addedCount} new articles added. Total: ${allNews.length}. Saved to news-data.json`);
+        fs.writeFileSync(OUTPUT_PATH, JSON.stringify(updatedNews, null, 2), 'utf-8');
+        console.log(`✅ ${addedCount} new articles added. Total: ${updatedNews.length}. Saved to news-data.json`);
     } else {
         console.log('No new articles found.');
     }

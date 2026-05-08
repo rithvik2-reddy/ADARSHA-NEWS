@@ -48,7 +48,24 @@ const translations = {
 // API Base URL for backend communication
 // News data is fetched from the GitHub-hosted JSON file.
 // GitHub Actions updates this every 30 minutes automatically — no PC or server needed!
-const NEWS_DATA_URL = "https://raw.githubusercontent.com/rithvik2-reddy/ADARSHA-NEWS/master/public/news-data.json";
+// API Base URL for news data.
+// By using a relative path, we fetch directly from Vercel's fast CDN instead of GitHub!
+const NEWS_DATA_URL = "/news-data.json";
+
+const BRANDING_KEYWORDS = [
+  'Sakshi-Mobile-Apps', 
+  'stickey', 
+  'app-download', 
+  'google-play', 
+  'app-store', 
+  'branding', 
+  's3fs-public',
+  'logo-white',
+  'logo-black',
+  'logo.png',
+  'logo.jpg',
+  'sakshi-apps'
+];
 
 const SOURCE_LINE_PATTERNS = [
   /^సాక్షి[,:\s-]/i,
@@ -57,11 +74,25 @@ const SOURCE_LINE_PATTERNS = [
   /^sakshi representative/i
 ];
 
-const BRANDING_KEYWORDS = ['Sakshi-Mobile-Apps', 'stickey', 'app-download', 'google-play', 'app-store', 'branding', 's3fs-public'];
+const BRANDING_KEYWORDS = [
+  'Sakshi-Mobile-Apps', 
+  'stickey', 
+  'app-download', 
+  'google-play', 
+  'app-store', 
+  'branding', 
+  's3fs-public',
+  'logo-white',
+  'logo-black',
+  'logo.png',
+  'logo.jpg',
+  'sakshi-apps'
+];
 
 function isBrandedImage(url) {
   if (!url) return false;
-  return BRANDING_KEYWORDS.some(kw => url.includes(kw));
+  const lower = url.toLowerCase();
+  return BRANDING_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
 }
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000';
@@ -267,39 +298,37 @@ const ArticleView = ({ lang, t, allNews }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [ads, setAds] = useState(null);
-
-  const [article, setArticle] = useState(() => {
-    if (allNews && allNews.length > 0) {
-      return allNews.find(n => n.id === id) || null;
-    }
-    return null;
-  });
-  const [loading, setLoading] = useState(!article);
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get('https://adarshapaper.in/settings.json', { timeout: 8000 }).then(res => setAds(res.data.newsAds)).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (article) {
-      window.scrollTo(0, 0);
+    // If we already have the article in props, use it immediately
+    const found = allNews.find(n => n.id === id);
+    if (found) {
+      setArticle(found);
       setLoading(false);
+      window.scrollTo(0, 0);
       return;
     }
 
+    // Fallback fetch only if not found (direct link)
     setLoading(true);
-    axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 12000 })
+    axios.get(`${NEWS_DATA_URL}?t=${Date.now()}`, { timeout: 10000 })
       .then(res => {
         const data = Array.isArray(res.data) ? res.data : [];
-        const found = data.find(n => n.id === id);
-        if (found) {
-          setArticle(found);
+        const foundRemote = data.find(n => n.id === id);
+        if (foundRemote) {
+          setArticle(foundRemote);
           window.scrollTo(0, 0);
         }
         setLoading(false);
       })
       .catch(err => { console.error(err); setLoading(false); });
-  }, [id]);
+  }, [id, allNews]);
 
   const sanitizedHtml = useMemo(() => sanitizeArticleHtml(article?.articleContent || ''), [article?.articleContent]);
 
@@ -378,6 +407,8 @@ function App() {
           categories[cat].push(item);
         });
         setCategoryNews(categories);
+        // Hide splash if we have cached data
+        if (window.__hideSplash) window.__hideSplash();
       } catch (e) {
         console.error("Cache parse error", e);
       }
@@ -400,9 +431,13 @@ function App() {
           setCategoryNews(categories);
           
           localStorage.setItem('adarsha_news_cache', JSON.stringify(data));
+          
+          // Hide the premium splash screen immediately after news is ready!
+          if (window.__hideSplash) window.__hideSplash();
         }
       } catch (err) {
         console.error("Fetch error", err);
+        if (window.__hideSplash) window.__hideSplash();
       }
     };
     fetchNews();
