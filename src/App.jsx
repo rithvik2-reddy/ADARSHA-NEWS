@@ -57,6 +57,15 @@ const SOURCE_LINE_PATTERNS = [
   /^sakshi representative/i
 ];
 
+const BRANDING_KEYWORDS = ['Sakshi-Mobile-Apps', 'stickey', 'app-download', 'google-play', 'app-store', 'branding', 's3fs-public'];
+
+function isBrandedImage(url) {
+  if (!url) return false;
+  return BRANDING_KEYWORDS.some(kw => url.includes(kw));
+}
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000';
+
 function sanitizeArticleHtml(html) {
   if (!html) return '';
   const parser = new DOMParser();
@@ -127,22 +136,13 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
           </ul>
         </div>
       </nav>
-      <div className="sub-nav">
-        <div className="container">
-          <ul>
-             {['Hyderabad', 'Andhra Pradesh', 'Telangana', 'Cinema', 'Auto', 'Health', 'Lifestyle'].map(item => (
-                <li key={item}><a href="#">{item}</a></li>
-             ))}
-          </ul>
-        </div>
-      </div>
 
       <main className="container">
         {activeCategory === 'Latest' && latestNews.length > 0 && (
           <>
             <section className="hero-section">
               <Link to={`/article/${latestNews[0].id}`} className="hero-main-article">
-                <img src={latestNews[0].imageUrl} alt={latestNews[0].title} />
+                <img src={isBrandedImage(latestNews[0].imageUrl) ? FALLBACK_IMAGE : latestNews[0].imageUrl} alt={latestNews[0].title} />
                 <div className="hero-content">
                   <span className="category-tag">{t[latestNews[0].category?.toLowerCase()] || latestNews[0].category}</span>
                   <h1>{latestNews[0].title}</h1>
@@ -152,7 +152,7 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               <div className="hero-side-articles">
                 {latestNews.slice(1, 5).map((news) => (
                    <Link to={`/article/${news.id}`} key={news.id} className="side-article">
-                     <img src={news.imageUrl} alt={news.title} />
+                     <img src={isBrandedImage(news.imageUrl) ? FALLBACK_IMAGE : news.imageUrl} alt={news.title} />
                      <div>
                        <h3>{news.title}</h3>
                        <div className="timestamp"><Clock size={12}/> {formatDate(news.pubDate)}</div>
@@ -185,7 +185,7 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
                     {categoryNews[cat].slice(0, 4).map(news => (
                       <Link to={`/article/${news.id}`} key={news.id} className="news-card">
                         <div className="news-card-img-wrapper">
-                          <img src={news.imageUrl} alt={news.title} />
+                          <img src={isBrandedImage(news.imageUrl) ? FALLBACK_IMAGE : news.imageUrl} alt={news.title} />
                         </div>
                         <div className="news-card-content">
                           <h3 className="news-card-title">{news.title}</h3>
@@ -232,7 +232,7 @@ const Home = ({ lang, t, latestNews, allNews, activeCategory, setActiveCategory,
               >
                 <div className="news-card-img-wrapper">
                   <span className="category-tag" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}>{t[news.category?.toLowerCase()] || news.category}</span>
-                  <img src={news.imageUrl} alt={news.title} loading="lazy" />
+                  <img src={isBrandedImage(news.imageUrl) ? FALLBACK_IMAGE : news.imageUrl} alt={news.title} loading="lazy" />
                 </div>
                 <div className="news-card-content">
                   <h3 className="news-card-title">{news.title}</h3>
@@ -331,7 +331,7 @@ const ArticleView = ({ lang, t, allNews }) => {
             <button><Share2 size={18} /> {t.share}</button>
           </div>
         </header>
-        <img src={article.imageUrl} alt={article.title} className="article-main-image" />
+        <img src={isBrandedImage(article.imageUrl) ? FALLBACK_IMAGE : article.imageUrl} alt={article.title} className="article-main-image" />
         <div className="article-content" dangerouslySetInnerHTML={{ __html: sanitizedHtml }}></div>
       </article>
       <aside className="article-sidebar">

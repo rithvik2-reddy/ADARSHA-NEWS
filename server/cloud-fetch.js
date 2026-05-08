@@ -257,7 +257,8 @@ async function run() {
                 let imageUrl = scraped.image || "";
                 
                 // Final safety for image selection: remove ads or branded placeholders
-                if (imageUrl.includes('Sakshi-Mobile-Apps') || imageUrl.includes('stickey') || imageUrl.includes('app-download')) {
+                const BRANDING_KEYWORDS = ['Sakshi-Mobile-Apps', 'stickey', 'app-download', 'google-play', 'app-store', 'branding', 's3fs-public'];
+                if (BRANDING_KEYWORDS.some(kw => imageUrl.includes(kw))) {
                     imageUrl = "";
                 }
 
