@@ -89,7 +89,30 @@ export default function ArticlePage() {
         <title>{article.title} | ఆదర్శ వార్తలు</title>
         <meta name="description" content={article.title} />
         <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.title} />
         <meta property="og:image" content={safeImg(article.imageUrl)} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:image" content={safeImg(article.imageUrl)} />
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "NewsArticle",
+              "headline": "${article.title.replace(/"/g, '\\"')}",
+              "image": [
+                "${safeImg(article.imageUrl)}"
+              ],
+              "datePublished": "${article.pubDate}",
+              "dateModified": "${article.pubDate}",
+              "author": [{
+                  "@type": "Organization",
+                  "name": "Adarsha News Desk"
+              }]
+            }
+          `}
+        </script>
       </Helmet>
 
       <div className="container" style={{ paddingTop: 32, paddingBottom: 64 }}>
