@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 const ThemeCtx = createContext({});
 const LangCtx = createContext({});
@@ -10,7 +12,7 @@ export const useTheme = () => useContext(ThemeCtx);
 export const useLang = () => useContext(LangCtx);
 export const useNews = () => useContext(NewsCtx);
 
-// Firebase Config (will read from env variables if provided)
+// Firebase Config - Loaded from Environment
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
@@ -20,14 +22,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || ""
 };
 
-let db = null;
+export let db = null;
+export let auth = null;
+export let storage = null;
+
 try {
-  if (firebaseConfig.projectId) {
+  // Only initialize if we have the absolute minimum required
+  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app);
+    if (firebaseConfig.storageBucket) {
+      storage = getStorage(app);
+    }
+    console.log("🔥 Firebase initialized successfully");
+  } else {
+    console.warn("⚠️ Firebase configuration missing: Falling back to local news-data.json");
   }
 } catch (e) {
-  console.warn("Firebase not initialized:", e);
+  console.error("❌ Firebase Initialization Error:", e);
 }
 
 export function ThemeProvider({ children }) {
@@ -53,6 +66,7 @@ export function NewsProvider({ children }) {
   const [allNews, setAllNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(null);
+  const [firebaseInitialized, setFirebaseInitialized] = useState(!!db);
 
   useEffect(() => {
     const cached = localStorage.getItem('an_cache');
@@ -61,40 +75,75 @@ export function NewsProvider({ children }) {
     }
 
     const fetchNews = async () => {
+      const hide = () => { if (window.__hideSplash) window.__hideSplash(); };
+      
+      let fetchedDocs = [];
+
       try {
         if (db) {
-          // Fetch from Firebase
           const q = query(collection(db, 'news'), orderBy('pubDate', 'desc'));
           const snapshot = await getDocs(q);
-          const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          if (docs.length > 0) {
-            setAllNews(docs);
-            localStorage.setItem('an_cache', JSON.stringify(docs));
-            setLoading(false);
-            if (window.__hideSplash) window.__hideSplash();
-            return;
-          }
+          fetchedDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log(`✅ Fetched ${fetchedDocs.length} articles from Firestore`);
         }
       } catch (err) {
-        console.warn("Firebase fetch failed, falling back to local JSON:", err);
+        console.warn("⚠️ Firestore fetch failed, trying local fallback:", err);
       }
 
-      // Fallback to local JSON
-      fetch(`/news-data.json?v=${Date.now()}`)
-        .then(r => r.json()).then(data => {
-          const d = Array.isArray(data) ? data : [];
-          setAllNews(d);
-          setLoading(false);
-          localStorage.setItem('an_cache', JSON.stringify(d));
-          if (window.__hideSplash) window.__hideSplash();
-        }).catch(() => { setLoading(false); if (window.__hideSplash) window.__hideSplash(); });
+      // If Firestore failed or was empty, try the local JSON file
+      if (fetchedDocs.length === 0) {
+        try {
+          const r = await fetch(`/news-data.json?v=${Date.now()}`);
+          if (r.ok) {
+            const data = await r.json();
+            fetchedDocs = Array.isArray(data) ? data : [];
+            console.log(`✅ Fetched ${fetchedDocs.length} articles from local news-data.json`);
+          }
+        } catch (err) {
+          console.error("❌ Local fetch also failed:", err);
+        }
+      }
+
+      if (fetchedDocs.length > 0) {
+        setAllNews(fetchedDocs);
+        localStorage.setItem('an_cache', JSON.stringify(fetchedDocs));
+      }
+      
+      setLoading(false);
+      hide();
     };
 
     fetchNews();
+    
+    // Global safety timeout to remove splash screen no matter what
+    const t = setTimeout(() => { 
+      setLoading(false); 
+      if (window.__hideSplash) window.__hideSplash(); 
+    }, 4000);
 
-    fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`)
-      .then(r => r.json()).then(setSettings).catch(() => {});
-  }, []);
+    // Fetch site settings from the central admin portal
+    fetch(`https://adarshapaper.in/public/settings.json?t=${Date.now()}`)
+      .then(r => r.ok ? r.json() : fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`).then(res => res.json()))
+      .then(s => {
+        setSettings(s);
+        // Dynamic Firebase Sync: If settings have firebase keys and we haven't initialized yet
+        if (!firebaseInitialized && s.firebase?.apiKey && s.firebase?.projectId) {
+          try {
+            const app = initializeApp(s.firebase);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            if (s.firebase.storageBucket) storage = getStorage(app);
+            setFirebaseInitialized(true);
+            console.log("🔥 Firebase dynamically initialized from settings.json");
+            // Re-fetch news from Firestore now that we are connected
+            fetchNews();
+          } catch (e) { console.error("Dynamic Firebase Init Error:", e); }
+        }
+      })
+      .catch(err => console.warn("Could not load settings:", err));
+    
+    return () => clearTimeout(t);
+  }, [firebaseInitialized]);
 
   const byCategory = (cat) => cat === 'Latest'
     ? allNews.slice(0, 60)

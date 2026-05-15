@@ -90,11 +90,11 @@ export default function ArticlePage() {
         <meta name="description" content={article.title} />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.title} />
-        <meta property="og:image" content={safeImg(article.imageUrl)} />
+        <meta property="og:image" content={safeImg(article.imageUrl, article.category)} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
-        <meta name="twitter:image" content={safeImg(article.imageUrl)} />
+        <meta name="twitter:image" content={safeImg(article.imageUrl, article.category)} />
         <script type="application/ld+json">
           {`
             {
@@ -102,7 +102,7 @@ export default function ArticlePage() {
               "@type": "NewsArticle",
               "headline": "${article.title.replace(/"/g, '\\"')}",
               "image": [
-                "${safeImg(article.imageUrl)}"
+                "${safeImg(article.imageUrl, article.category)}"
               ],
               "datePublished": "${article.pubDate}",
               "dateModified": "${article.pubDate}",
@@ -153,7 +153,7 @@ export default function ArticlePage() {
               <button className="share-btn copy" onClick={() => share('copy')}>🔗 Copy Link</button>
             </div>
 
-            <img src={safeImg(article.imageUrl)} alt={article.title} className="article-hero" />
+            <img src={safeImg(article.imageUrl, article.category)} alt={article.title} className="article-hero" />
 
             <div className="article-body" dangerouslySetInnerHTML={{ __html: html }} />
 

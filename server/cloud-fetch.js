@@ -29,12 +29,14 @@ const parser = new Parser({
 });
 
 const RSS_FEEDS = [
-    { url: 'https://www.sakshi.com/rss/home.xml', category: 'Latest' },
-    { url: 'https://www.sakshi.com/rss/andhra-pradesh.xml', category: 'National' },
+    { url: 'https://www.sakshi.com/rss/home.xml', category: 'Politics' },
+    { url: 'https://www.sakshi.com/rss/andhra-pradesh.xml', category: 'AndhraPradesh' },
+    { url: 'https://www.sakshi.com/rss/telangana.xml', category: 'Telangana' },
+    { url: 'https://www.sakshi.com/rss/national.xml', category: 'India' },
     { url: 'https://www.sakshi.com/rss/international.xml', category: 'World' },
     { url: 'https://www.sakshi.com/rss/business.xml', category: 'Business' },
     { url: 'https://www.sakshi.com/rss/features/technology.xml', category: 'Technology' },
-    { url: 'https://www.sakshi.com/rss/entertainment.xml', category: 'Entertainment' },
+    { url: 'https://www.sakshi.com/rss/entertainment.xml', category: 'Cinema' },
     { url: 'https://www.sakshi.com/rss/sports.xml', category: 'Sports' }
 ];
 

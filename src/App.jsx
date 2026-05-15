@@ -3,10 +3,12 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
+import BottomNav from './components/BottomNav.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ArticlePage from './pages/ArticlePage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx';
 import SearchPage from './pages/SearchPage.jsx';
+import AdminDashboard from './admin/AdminDashboard.jsx';
 
 function NotFound() {
   return (
@@ -23,10 +25,11 @@ const pageVariants = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y:
 
 export default function App() {
   const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
+      {!isAdmin && <Header />}
       <div style={{ flex: 1 }}>
         <AnimatePresence mode="wait">
           <motion.div key={location.pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
@@ -35,12 +38,14 @@ export default function App() {
               <Route path="/article/:id" element={<ArticlePage />} />
               <Route path="/category/:cat" element={<CategoryPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
       </div>
-      <Footer />
+      {!isAdmin && <Footer />}
+      {!isAdmin && <BottomNav />}
     </div>
   );
 }

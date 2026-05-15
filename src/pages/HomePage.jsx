@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useNews, useLang } from '../context/providers.jsx';
 import { CATEGORIES, TRANSLATIONS } from '../utils/constants.js';
 import HeroSlider from '../components/HeroSlider.jsx';
@@ -32,7 +33,21 @@ export default function HomePage() {
       </Helmet>
 
       <main className="home-main">
-        <div className="container" style={{ paddingTop: 32, paddingBottom: 40 }}>
+        <div className="container mobile-only" style={{ paddingTop: 10, paddingBottom: 0 }}>
+          {/* HORIZONTAL CATEGORY TABS - MOBILE ONLY */}
+          <div className="mobile-category-tabs">
+            {HOME_CATS.map(cat => {
+              const catInfo = CATEGORIES.find(c => c.key === cat);
+              return (
+                <Link key={cat} to={`/category/${cat}`} className="mobile-tab-item">
+                  {lang === 'te' ? (catInfo?.te || cat) : cat}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="container" style={{ paddingTop: 12, paddingBottom: 40 }}>
           
           {/* HERO SECTION - PREMIUM LAYOUT */}
           <div className="hero-grid">
@@ -140,9 +155,9 @@ export default function HomePage() {
           grid-template-columns: 2.2fr 1fr;
           gap: 24px;
           align-items: stretch;
-          margin-bottom: 20px;
+          margin-bottom: 24px;
         }
-        .hero-slider-wrapper { height: 100%; min-height: 400px; }
+        .hero-slider-wrapper { height: 100%; min-height: 400px; border-radius: var(--radius); overflow: hidden; }
         
         .latest-widget {
           background: var(--surface);
@@ -251,7 +266,7 @@ export default function HomePage() {
         
         .more-stories-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 24px;
         }
 
@@ -259,11 +274,15 @@ export default function HomePage() {
           .hero-grid { grid-template-columns: 1.5fr 1fr; }
           .content-layout { grid-template-columns: 1.5fr 1fr; gap: 24px; }
         }
-        @media(max-width: 900px) {
-          .hero-grid { grid-template-columns: 1fr; }
-          .latest-widget { max-height: 400px; }
+        @media(max-width: 768px) {
+          .mobile-tabs { display: flex !important; }
+          .hero-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+          .hero-slider-wrapper { min-height: 240px; order: 1; }
+          .latest-widget { max-height: 450px; order: 2; border-radius: 0; border-left: none; border-right: none; }
           .content-layout { grid-template-columns: 1fr; }
           .sidebar { position: static; }
+          .more-stories-grid { grid-template-columns: 1fr; }
+          .trending-wrapper { padding: 24px 0; margin: 24px 0; }
         }
         @media(max-width: 480px) {
           .latest-widget-header h3 { font-size: 0.95rem; }

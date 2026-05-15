@@ -44,7 +44,7 @@ export default function SearchPage() {
         {query && <p style={{ color: 'var(--muted)', marginBottom: 20, fontSize: '.9rem' }}>{results.length} results for "<strong>{query}</strong>"</p>}
 
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 20 }}>
+          <div className="search-grid">
             {Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : results.length === 0 && query ? (
@@ -53,10 +53,21 @@ export default function SearchPage() {
             <p>{lang === 'te' ? 'ఫలితాలు లేవు' : 'No results found'}</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 20 }}>
+          <div className="search-grid">
             {(query || catFilter ? results : allNews.slice(0, 40)).map(n => <NewsCard key={n.id} news={n} />)}
           </div>
         )}
+
+        <style>{`
+          .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+          }
+          @media(max-width: 768px) {
+            .search-grid { grid-template-columns: 1fr; }
+          }
+        `}</style>
       </div>
     </>
   );

@@ -36,7 +36,7 @@ export default function HeroSlider({ news }) {
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} style={{ position: 'absolute', inset: 0 }}>
           <Link to={`/article/${cur.id}`} className="hero-slide" style={{ height: '100%', display: 'block' }}>
-            <img src={safeImg(cur.imageUrl)} alt={cur.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="eager" />
+            <img src={safeImg(cur.imageUrl, cur.category)} alt={cur.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="eager" />
             <div className="hero-overlay">
               <span className="cat-tag" style={{ background: catColor }}>{t[cur.category?.toLowerCase()] || cur.category}</span>
               <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.9rem)', maxWidth: 640 }}>{cur.title}</h2>
@@ -63,7 +63,7 @@ export default function HeroSlider({ news }) {
       <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 220, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }} className="hero-thumbs">
         {slides.map((n, i) => (
           <button key={i} onClick={() => setIdx(i)} style={{ flex: 1, border: 'none', padding: 0, cursor: 'pointer', position: 'relative', overflow: 'hidden', opacity: i === idx ? 1 : .6, transition: 'opacity .3s', outline: i === idx ? '2px solid #DC2626' : 'none' }}>
-            <img src={safeImg(n.imageUrl)} alt={n.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+            <img src={safeImg(n.imageUrl, n.category)} alt={n.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'flex-end', padding: '6px 8px' }}>
               <span style={{ color: '#fff', fontSize: '.65rem', fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{n.title}</span>
             </div>

@@ -13,7 +13,7 @@ export function NewsCard({ news, style }) {
     <Link to={`/article/${news.id}`} className="news-card" style={style}>
       <div className="card-img" style={{ aspectRatio: '16/10' }}>
         <span className="cat-tag" style={{ background: color, position: 'absolute', top: 10, left: 10, zIndex: 2 }}>{t[news.category?.toLowerCase()] || news.category}</span>
-        <img src={safeImg(news.imageUrl)} alt={news.title} loading="lazy" />
+        <img src={safeImg(news.imageUrl, news.category)} alt={news.title} loading="lazy" />
       </div>
       <div className="card-body">
         <h3 className="card-title">{news.title}</h3>
@@ -33,7 +33,7 @@ export function CompactCard({ news }) {
   const color = getCategoryColor(news.category);
   return (
     <Link to={`/article/${news.id}`} className="compact-card">
-      <img src={safeImg(news.imageUrl)} alt={news.title} loading="lazy" />
+      <img src={safeImg(news.imageUrl, news.category)} alt={news.title} loading="lazy" />
       <div className="compact-card-body">
         <span className="cat-tag" style={{ background: color, marginBottom: 6 }}>{t[news.category?.toLowerCase()] || news.category}</span>
         <div className="compact-card-title">{news.title}</div>

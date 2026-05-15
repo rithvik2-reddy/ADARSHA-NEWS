@@ -1,8 +1,25 @@
 import { FALLBACK_IMAGE } from './constants';
 
-const BRANDED = ['sakshi','s3fs-public','stickey','logo-white','logo-black','app-store','google-play'];
+const BRANDED = ['sakshi','eenadu','ntv','tv9','s3fs-public','stickey','logo-white','logo-black','app-store','google-play'];
 export const isBranded = (url) => !url || BRANDED.some(k => url.toLowerCase().includes(k));
-export const safeImg = (url) => isBranded(url) ? FALLBACK_IMAGE : (url || FALLBACK_IMAGE);
+
+const CAT_FALLBACKS = {
+  Politics: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&q=80',
+  Telangana: 'https://images.unsplash.com/photo-1548013146-72479768bbaa?w=800&q=80',
+  AndhraPradesh: 'https://images.unsplash.com/photo-1600100397608-f010e623ec28?w=800&q=80',
+  India: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=800&q=80',
+  World: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=800&q=80',
+  Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80',
+  Cinema: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80',
+  Business: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+  Technology: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+  Viral: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&q=80',
+};
+
+export const safeImg = (url, cat) => {
+  if (isBranded(url)) return CAT_FALLBACKS[cat] || FALLBACK_IMAGE;
+  return url || CAT_FALLBACKS[cat] || FALLBACK_IMAGE;
+};
 
 const SOURCE_PATTERNS = [/^సాక్షి[,:\s-]/i, /^sakshi[,:\s-]/i];
 
