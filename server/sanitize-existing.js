@@ -17,11 +17,13 @@ function cleanContent(html) {
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
-    // Remove all <a> tags pointing to Sakshi app pages or Play Store
+    // Remove all <a> tags pointing to competitor app pages or Play Store
     doc.querySelectorAll('a').forEach(link => {
       const href = link.getAttribute('href') || '';
       if (href.includes('play.google.com') || href.includes('apple.com/app') ||
-          href.includes('sakshi.com/mobile-apps') || href.includes('special.sakshi.com')) {
+          href.includes('sakshi.com') || href.includes('tv9telugu.com') ||
+          href.includes('ntvtelugu.com') || href.includes('eenadu.net') ||
+          href.includes('v6velugu.com') || href.includes('ntnews.com')) {
         // Remove the parent <p> if it only contains this link
         const parent = link.parentElement;
         if (parent && parent.tagName === 'P' && parent.textContent.trim() === link.textContent.trim()) {
@@ -32,13 +34,16 @@ function cleanContent(html) {
       }
     });
 
-    // Remove all images from sakshi.com domains or that are app banners
+    // Remove all images from competitor domains or that are app banners
     doc.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '').toLowerCase();
       const alt = (img.getAttribute('alt') || '').toLowerCase();
-      if (src.includes('sakshi.com/s3fs') || src.includes('Sakshi-Mobile') ||
-          alt.includes('sakshi') || src.includes('mobile-apps-stickey') ||
-          src.includes('playstore') || src.includes('appstore')) {
+      if (src.includes('sakshi.com') || src.includes('Sakshi-Mobile') ||
+          src.includes('tv9') || src.includes('ntv') ||
+          alt.includes('sakshi') || alt.includes('tv9') || alt.includes('ntv') ||
+          src.includes('mobile-apps-stickey') ||
+          src.includes('playstore') || src.includes('appstore') ||
+          src.includes('logo')) {
         const parent = img.parentElement;
         if (parent && parent.tagName === 'P' && parent.children.length === 1) {
           parent.remove();
@@ -48,35 +53,48 @@ function cleanContent(html) {
       }
     });
 
+    // Strip all links, keep text
+    doc.querySelectorAll('a').forEach(link => {
+      const text = link.textContent;
+      link.replaceWith(text);
+    });
+
     // Remove script and style elements
     doc.querySelectorAll('script, style, iframe').forEach(el => el.remove());
 
-    // Text node walk — replace competitor brand names in text
+    let clean = doc.body.innerHTML;
+    // Phone numbers and signatures
+    clean = clean.replace(/\d{10}/g, "");
+    clean = clean.replace(/\d{5}[-\s]\d{5}/g, "");
+    clean = clean.replace(/వై\.వెంకటసుబ్బారెడ్డి/g, "");
+
     const replacements = [
-      [/సాక్షి/g, 'ఆదర్శ న్యూస్'],
-      [/Sakshi(?!\.com)/gi, 'Adarsha News'],
+        [/సాక్షి/g, "ఆదర్శ వార్తలు"], [/Sakshi/g, "Adarsha News"], 
+        [/ఈనాడు/g, "ఆదర్శ వార్తలు"], [/Eenadu/g, "Adarsha News"],
+        [/నమస్తే తెలంగాణ/g, "ఆదర్శ వార్తలు"], [/Namasthe Telangana/g, "Adarsha News"],
+        [/ఆంధ్రజ్యోతి/g, "ఆదర్శ వార్తలు"], [/Andhrajyothy/g, "Adarsha News"], 
+        [/సమయం/g, "ఆదర్శ వార్తలు"], [/Samayam/g, "Adarsha News"], 
+        [/10TV/g, "ఆదర్శ వార్తలు"], [/ABP Desam/g, "ఆదర్శ వార్తలు"], 
+        [/ABP/g, "ఆదర్శ వార్తలు"], [/TV9/g, "ఆదర్శ వార్తలు"], 
+        [/V6 News/g, "ఆదర్శ వార్తలు"], [/NTV/g, "ఆదర్శ వార్తలు"], 
+        [/TV5/g, "ఆదర్శ వార్తలు"], [/Way2News/g, "ఆదర్శ వార్తలు"], 
+        [/Inshorts/g, "ఆదర్శ వార్తలు"], [/వెలుగు/g, "ఆదర్శ వార్తలు"], [/Velugu/g, "Adarsha News"],
+        [/ABN/g, "ఆదర్శ వార్తలు"], [/Andhra Jyothy/g, "Adarsha News"]
     ];
 
-    function walkTextNodes(node) {
-      if (node.nodeType === 3) {
-        let text = node.textContent;
-        replacements.forEach(([pattern, replacement]) => {
-          text = text.replace(pattern, replacement);
-        });
-        node.textContent = text;
-      } else {
-        node.childNodes.forEach(walkTextNodes);
-      }
-    }
-    walkTextNodes(doc.body);
+    replacements.forEach(([pattern, replacement]) => {
+      clean = clean.replace(pattern, replacement);
+    });
+
+    return clean.trim();
 
     // Remove intro lines like "సాక్షి, నెల్లూరు:" at start of paragraphs
     doc.querySelectorAll('p').forEach(p => {
-      if (/^(సాక్షి|Sakshi)[,\s]/.test(p.textContent.trim())) {
+      const text = p.textContent.trim();
+      if (/^(సాక్షి|Sakshi|టీవీ9|TV9|ఎన్‌టీవీ|NTV)[,\s]/.test(text)) {
         // Strip the prefix up to the colon
-        const text = p.textContent;
         const colonIdx = text.indexOf(':');
-        if (colonIdx > 0 && colonIdx < 40) {
+        if (colonIdx > 0 && colonIdx < 50) {
           p.textContent = text.substring(colonIdx + 1).trim();
         }
       }
@@ -86,8 +104,8 @@ function cleanContent(html) {
   } catch (e) {
     // Fallback: regex-only cleanup
     return html
-      .replace(/<a[^>]+(?:sakshi\.com\/mobile-apps|play\.google\.com|special\.sakshi)[^>]*>[\s\S]*?<\/a>/gi, '')
-      .replace(/<img[^>]+Sakshi-Mobile[^>]*\/?>/gi, '')
+      .replace(/<a[^>]+(?:sakshi\.com|play\.google\.com|tv9telugu\.com)[^>]*>[\s\S]*?<\/a>/gi, '')
+      .replace(/<img[^>]+(?:Sakshi-Mobile|logo|tv9|ntv)[^>]*\/?>/gi, '')
       .replace(/<p>\s*<\/p>/gi, '');
   }
 }

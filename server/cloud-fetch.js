@@ -12,7 +12,7 @@ const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️  GEMINI_API_KEY is missing! AI rewriting will be skipped.");
@@ -81,7 +81,9 @@ const RSS_FEEDS = [
     { url: 'https://ntvtelugu.com/category/entertainment/feed', category: 'Cinema' },
     { url: 'https://www.sakshi.com/rss/sports.xml', category: 'Sports' },
     { url: 'https://telugu.samayam.com/rssfeeds/2122827.cms', category: 'Sports' },
-    { url: 'https://tv9telugu.com/sports/feed', category: 'Sports' }
+    { url: 'https://tv9telugu.com/sports/feed', category: 'Sports' },
+    { url: 'https://10tv.in/feed', category: 'Latest' },
+    { url: 'https://www.andhrajyothy.com/rss/latest-news.xml', category: 'Latest' }
 ];
 
 // Path to the output JSON file (inside the project's public folder)
@@ -193,8 +195,21 @@ function cleanContent(html) {
         }
     });
 
-    // 5. Global text replacement for any remaining branding
+    // Convert all remaining <a> tags to plain text (prevents links to other sites)
+    doc.querySelectorAll('a').forEach(a => {
+        const text = a.textContent;
+        a.replaceWith(text);
+    });
+
+    // Remove script, style, iframe, etc.
+    doc.querySelectorAll('script, style, iframe, button, ins').forEach(el => el.remove());
+
     let finalHtml = doc.body.innerHTML;
+    
+    // Patterns for phone numbers and contact info
+    finalHtml = finalHtml.replace(/\d{10}/g, ""); // Basic 10-digit removal
+    finalHtml = finalHtml.replace(/\d{5}[-\s]\d{5}/g, ""); // Spaced/hyphenated
+    
     const BLACKLIST = [
         [/సాక్షి/g, "ఆదర్శ వార్తలు"], [/Sakshi/g, "Adarsha News"], 
         [/ఈనాడు/g, "ఆదర్శ వార్తలు"], [/Eenadu/g, "Adarsha News"],
@@ -205,15 +220,15 @@ function cleanContent(html) {
         [/ABP/g, "ఆదర్శ వార్తలు"], [/TV9/g, "ఆదర్శ వార్తలు"], 
         [/V6 News/g, "ఆదర్శ వార్తలు"], [/NTV/g, "ఆదర్శ వార్తలు"], 
         [/TV5/g, "ఆదర్శ వార్తలు"], [/Way2News/g, "ఆదర్శ వార్తలు"], 
-        [/Inshorts/g, "ఆదర్శ వార్తలు"], [/వెలుగు/g, "ఆదర్శ వార్తలు"], [/Velugu/g, "Adarsha News"]
+        [/Inshorts/g, "ఆదర్శ వార్తలు"], [/వెలుగు/g, "ఆదర్శ వార్తలు"], [/Velugu/g, "Adarsha News"],
+        [/ABN/g, "ఆదర్శ వార్తలు"], [/Andhra Jyothy/g, "Adarsha News"]
     ];
     BLACKLIST.forEach(([pattern, replacement]) => {
         finalHtml = finalHtml.replace(pattern, replacement);
     });
     
-    // Remove "Download App" phrases in Telugu
-    finalHtml = finalHtml.replace(/యాప్‌ను డౌన్‌లోడ్ చేసుకోండి/g, "");
-    finalHtml = finalHtml.replace(/డౌన్‌లోడ్ యాప్/g, "");
+    // Remove common reporter signatures
+    finalHtml = finalHtml.replace(/వై\.వెంకటసుబ్బారెడ్డి/g, "");
 
     return finalHtml.trim();
 }
@@ -228,30 +243,42 @@ async function scrapeArticle(url) {
         const document = dom.window.document;
 
         let image = "";
-        const metaTags = document.getElementsByTagName('meta');
-        for (let i = 0; i < metaTags.length; i++) {
-            const property = metaTags[i].getAttribute('property') || metaTags[i].getAttribute('name');
-            const content = metaTags[i].getAttribute('content');
-            if (!content) continue;
-            
-            if (['og:image', 'twitter:image', 'image', 'thumbnail', 'image_src'].includes(property)) {
-                image = content;
-                break;
+        const metaTags = document.querySelectorAll('meta');
+        metaTags.forEach(meta => {
+            const prop = meta.getAttribute('property') || meta.getAttribute('name');
+            const content = meta.getAttribute('content');
+            if (content && ['og:image', 'twitter:image', 'image', 'thumbnail', 'image_src'].includes(prop)) {
+                if (!image) image = content;
+            }
+        });
+        
+        // Check link tags
+        if (!image) {
+            const linkTag = document.querySelector('link[rel="image_src"]');
+            if (linkTag) image = linkTag.getAttribute('href');
+        }
+
+        // If meta failed, try first high-res image in body, checking for lazy attributes
+        if (!image) {
+            const bodyImgs = Array.from(document.querySelectorAll('img')).filter(img => {
+                const src = img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('src') || '';
+                return src.startsWith('http') && !src.includes('ads') && !src.includes('icon') && !src.includes('pixel');
+            });
+            if (bodyImgs.length > 0) {
+                const bestImg = bodyImgs[0];
+                image = bestImg.getAttribute('data-src') || bestImg.getAttribute('data-original') || bestImg.getAttribute('src');
             }
         }
         
-        // If meta failed, try first high-res image in body
-        if (!image) {
-            const bodyImgs = Array.from(document.querySelectorAll('img')).filter(img => {
-                const w = parseInt(img.getAttribute('width') || '0');
-                const src = img.getAttribute('src') || '';
-                return src.startsWith('http') && !src.includes('ads') && !src.includes('icon');
-            });
-            if (bodyImgs.length > 0) image = bodyImgs[0].getAttribute('src');
-        }
+        // Readability parse
         const reader = new Readability(document);
         const article = reader.parse();
         
+        // If readability found an image that we didn't, use it
+        if (!image && article && article.featured_image) {
+            image = article.featured_image;
+        }
+
         // Sanitize the content right after scraping
         const sanitizedHtml = cleanContent(article ? article.content : "");
         const sanitizedText = article ? article.textContent.trim() : "";

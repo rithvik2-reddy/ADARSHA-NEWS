@@ -31,16 +31,16 @@ export default function HeroSlider({ news }) {
   const catColor = getCategoryColor(cur.category);
 
   return (
-    <div className="hero-slider-container" style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', maxHeight: 520 }}
+    <div className="hero-slider-container" style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', height: '100%', width: '100%' }}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} style={{ position: 'absolute', inset: 0 }}>
-          <Link to={`/article/${cur.id}`} className="hero-slide" style={{ height: '100%', display: 'block' }}>
+          <Link to={`/article/${cur.id}`} className="hero-slide" style={{ height: '100%', width: '100%', display: 'block' }}>
             <img src={safeImg(cur.imageUrl, cur.category)} alt={cur.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="eager" />
-            <div className="hero-overlay">
+            <div className="hero-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }}>
               <span className="cat-tag" style={{ background: catColor }}>{t[cur.category?.toLowerCase()] || cur.category}</span>
-              <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.9rem)', maxWidth: 640 }}>{cur.title}</h2>
-              <div style={{ color: 'rgba(255,255,255,.7)', fontSize: '.8rem', marginTop: 8 }}>
+              <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.9rem)', maxWidth: '90%', color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{cur.title}</h2>
+              <div style={{ color: 'rgba(255,255,255,.8)', fontSize: '.75rem', marginTop: 8, fontWeight: 600 }}>
                 🕐 {new Date(cur.pubDate).toLocaleString(lang === 'te' ? 'te-IN' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
