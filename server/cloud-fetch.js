@@ -193,10 +193,23 @@ async function scrapeArticle(url) {
         const metaTags = document.getElementsByTagName('meta');
         for (let i = 0; i < metaTags.length; i++) {
             const property = metaTags[i].getAttribute('property') || metaTags[i].getAttribute('name');
-            if (property === 'og:image' || property === 'twitter:image') {
-                image = metaTags[i].getAttribute('content');
+            const content = metaTags[i].getAttribute('content');
+            if (!content) continue;
+            
+            if (['og:image', 'twitter:image', 'image', 'thumbnail', 'image_src'].includes(property)) {
+                image = content;
                 break;
             }
+        }
+        
+        // If meta failed, try first high-res image in body
+        if (!image) {
+            const bodyImgs = Array.from(document.querySelectorAll('img')).filter(img => {
+                const w = parseInt(img.getAttribute('width') || '0');
+                const src = img.getAttribute('src') || '';
+                return src.startsWith('http') && !src.includes('ads') && !src.includes('icon');
+            });
+            if (bodyImgs.length > 0) image = bodyImgs[0].getAttribute('src');
         }
         const reader = new Readability(document);
         const article = reader.parse();
