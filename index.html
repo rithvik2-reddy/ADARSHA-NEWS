@@ -1,23 +1,121 @@
 <!doctype html>
-<html lang="en">
+<html lang="te">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ఆదర్శ వార్తలు - తాజా తెలుగు వార్తలు</title>
+    <title>ఆదర్శ వార్తలు | తాజా తెలుగు వార్తలు - Adarsha News</title>
+    <meta name="description" content="ఆదర్శ వార్తలు - తెలంగాణ, ఆంధ్రప్రదేశ్, జాతీయ, అంతర్జాతీయ, సినిమా, క్రీడలు తాజా వార్తలు. Adarsha News - Latest Telugu & English News Portal." />
+    <meta name="keywords" content="telugu news, adarsha news, telangana news, andhra pradesh news, hyderabad news, latest telugu news" />
+    <meta name="theme-color" content="#DC2626" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ఆదర్శ వార్తలు | తాజా తెలుగు వార్తలు" />
+    <meta property="og:description" content="తెలంగాణ, ఆంధ్రప్రదేశ్, జాతీయ వార్తలు | Latest Telugu News Portal" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:site_name" content="Adarsha News" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ఆదర్శ వార్తలు | Adarsha News" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- PWA Manifest -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ఆదర్శ వార్తలు" />
+
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&family=Tiro+Telugu:ital@0;1&family=Noto+Sans+Telugu:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
     <style>
-      .preloader { display: none !important; }
+      /* ── PREMIUM PRELOADER ── */
+      #preloader {
+        position: fixed; inset: 0;
+        background: #0A0A10;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+      #preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+      .preloader-logo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        animation: preloader-pulse 1.5s ease-in-out infinite;
+      }
+      .preloader-en {
+        font-family: 'Inter', sans-serif;
+        font-size: 2.4rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -1px;
+      }
+      .preloader-en span { color: #DC2626; }
+      .preloader-te {
+        font-family: 'Noto Sans Telugu', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #94A3B8;
+        letter-spacing: 2px;
+      }
+      .preloader-bar {
+        width: 200px;
+        height: 3px;
+        background: #1E293B;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .preloader-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #DC2626, #EF4444, #DC2626);
+        background-size: 200% 100%;
+        border-radius: 10px;
+        animation: preloader-slide 1.2s ease-in-out infinite;
+      }
+      @keyframes preloader-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(0.98); }
+      }
+      @keyframes preloader-slide {
+        0% { background-position: 200% 0; width: 0%; }
+        50% { width: 80%; background-position: 0% 0; }
+        100% { background-position: -200% 0; width: 100%; }
+      }
+      body { margin: 0; padding: 0; }
     </style>
   </head>
   <body>
+    <!-- PREMIUM PRELOADER -->
+    <div id="preloader">
+      <div class="preloader-logo">
+        <div class="preloader-en">ADARSHA <span>NEWS</span></div>
+        <div class="preloader-te">ఆదర్శ వార్తలు</div>
+      </div>
+      <div class="preloader-bar"><div class="preloader-fill"></div></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Force hide any splash screen
-      setTimeout(() => {
-        const s = document.getElementById('splash');
-        if (s) s.remove();
-      }, 100);
+      window.__hideSplash = function() {
+        const el = document.getElementById('preloader');
+        if (el) { el.classList.add('hidden'); setTimeout(() => el.remove(), 600); }
+      };
+      // Safety: always hide after 6s
+      setTimeout(window.__hideSplash, 6000);
     </script>
   </body>
 </html>
