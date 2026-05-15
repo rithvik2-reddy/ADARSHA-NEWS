@@ -29,15 +29,43 @@ const parser = new Parser({
 });
 
 const RSS_FEEDS = [
+    // Politics & Home
     { url: 'https://www.sakshi.com/rss/home.xml', category: 'Politics' },
+    { url: 'https://telugu.samayam.com/rssfeeds/2122866.cms', category: 'Politics' },
+    { url: 'https://telugu.abplive.com/news/politics/feed', category: 'Politics' },
+    
+    // Latest & Top Stories
+    { url: 'https://www.sakshi.com/rss/latest-news.xml', category: 'Latest' },
+    { url: 'https://www.sakshi.com/rss/top-stories.xml', category: 'Latest' },
+    { url: 'https://telugu.samayam.com/rssfeeds/2122863.cms', category: 'Latest' },
+    
+    // Andhra Pradesh
     { url: 'https://www.sakshi.com/rss/andhra-pradesh.xml', category: 'AndhraPradesh' },
+    { url: 'https://telugu.samayam.com/andhra-pradesh/articlelist/2122822.cms', category: 'AndhraPradesh' },
+    { url: 'https://telugu.abplive.com/andhra-pradesh/feed', category: 'AndhraPradesh' },
+    
+    // Telangana
     { url: 'https://www.sakshi.com/rss/telangana.xml', category: 'Telangana' },
+    { url: 'https://telugu.samayam.com/telangana/articlelist/2122821.cms', category: 'Telangana' },
+    { url: 'https://telugu.abplive.com/telangana/feed', category: 'Telangana' },
+    
+    // India & World
     { url: 'https://www.sakshi.com/rss/national.xml', category: 'India' },
+    { url: 'https://telugu.abplive.com/news/india/feed', category: 'India' },
     { url: 'https://www.sakshi.com/rss/international.xml', category: 'World' },
+    { url: 'https://telugu.abplive.com/news/world/feed', category: 'World' },
+    
+    // Business & Technology
     { url: 'https://www.sakshi.com/rss/business.xml', category: 'Business' },
     { url: 'https://www.sakshi.com/rss/features/technology.xml', category: 'Technology' },
+    { url: 'https://telugu.samayam.com/rssfeeds/2122831.cms', category: 'Technology' },
+    
+    // Cinema & Sports
     { url: 'https://www.sakshi.com/rss/entertainment.xml', category: 'Cinema' },
-    { url: 'https://www.sakshi.com/rss/sports.xml', category: 'Sports' }
+    { url: 'https://telugu.samayam.com/rssfeeds/2122824.cms', category: 'Cinema' },
+    { url: 'https://telugu.abplive.com/entertainment/feed', category: 'Cinema' },
+    { url: 'https://www.sakshi.com/rss/sports.xml', category: 'Sports' },
+    { url: 'https://telugu.samayam.com/rssfeeds/2122827.cms', category: 'Sports' }
 ];
 
 // Path to the output JSON file (inside the project's public folder)
@@ -136,8 +164,18 @@ function cleanContent(html) {
 
     // 5. Global text replacement for any remaining branding
     let finalHtml = doc.body.innerHTML;
-    finalHtml = finalHtml.replace(/సాక్షి/g, "ఆదర్శ");
-    finalHtml = finalHtml.replace(/Sakshi/g, "Adarsha");
+    const BLACKLIST = [
+        /సాక్షి/g, /Sakshi/g, /ఈనాడు/g, /Eenadu/g, /నమస్తే తెలంగాణ/g, /Namasthe Telangana/g,
+        /ఆంధ్రజ్యోతి/g, /Andhrajyothy/g, /సమయం/g, /Samayam/g, /10TV/g, /ABP Desam/g, 
+        /ABP/g, /TV9/g, /V6 News/g, /NTV/g, /TV5/g, /Way2News/g, /Inshorts/g, /వెలుగు/g, /Velugu/g
+    ];
+    BLACKLIST.forEach(pattern => {
+        finalHtml = finalHtml.replace(pattern, "ఆదర్శ");
+    });
+    
+    // Remove "Download App" phrases in Telugu
+    finalHtml = finalHtml.replace(/యాప్‌ను డౌన్‌లోడ్ చేసుకోండి/g, "");
+    finalHtml = finalHtml.replace(/డౌన్‌లోడ్ యాప్/g, "");
 
     return finalHtml.trim();
 }
@@ -271,7 +309,14 @@ async function run() {
                 if (!imageUrl && item.enclosure?.url) imageUrl = item.enclosure.url;
                 
                 if (!imageUrl || imageUrl === "undefined") {
-                    imageUrl = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000';
+                    const fallbacks = [
+                        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000',
+                        'https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=1000',
+                        'https://images.unsplash.com/photo-1585829365234-78d955d29511?q=80&w=1000',
+                        'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000',
+                        'https://images.unsplash.com/photo-1503694978374-8a2fa686963a?q=80&w=1000'
+                    ];
+                    imageUrl = fallbacks[Math.floor(Math.random() * fallbacks.length)];
                 }
 
                 let finalTitle = cleanTitle(scraped.title || item.title);

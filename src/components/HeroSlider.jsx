@@ -31,7 +31,7 @@ export default function HeroSlider({ news }) {
   const catColor = getCategoryColor(cur.category);
 
   return (
-    <div style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', aspectRatio: '16/7', maxHeight: 520 }}
+    <div className="hero-slider-container" style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', maxHeight: 520 }}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} style={{ position: 'absolute', inset: 0 }}>
@@ -71,7 +71,14 @@ export default function HeroSlider({ news }) {
         ))}
       </div>
 
-      <style>{`@media(max-width:768px){.hero-thumbs{display:none!important}}`}</style>
+      <style>{`
+        .hero-slider-container { aspectRatio: 16/7; }
+        @media(max-width:768px){
+          .hero-slider-container { aspectRatio: 16/10; }
+          .hero-thumbs { display:none !important; }
+          .hero-overlay h2 { font-size: 1.1rem !important; }
+        }
+      `}</style>
     </div>
   );
 }

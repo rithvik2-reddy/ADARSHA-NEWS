@@ -64,7 +64,7 @@ export default function HomePage() {
               <div className="latest-widget-content">
                 {loading
                   ? Array(5).fill(0).map((_, i) => <SkeletonCompact key={i} />)
-                  : allNews.slice(5, 12).map((n, i) => (
+                  : allNews.slice(0, 15).map((n, i) => (
                       <motion.div key={n.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
                         <CompactCard news={n} />
                       </motion.div>
@@ -79,7 +79,7 @@ export default function HomePage() {
         {!loading && allNews.length > 0 && (
           <div className="trending-wrapper">
             <div className="container">
-              <TrendingSection news={allNews.slice(5, 15)} />
+              <TrendingSection news={allNews.slice(0, 20)} />
             </div>
           </div>
         )}
@@ -134,13 +134,13 @@ export default function HomePage() {
           </div>
 
           {/* MORE STORIES */}
-          {!loading && allNews.length > 20 && (
+          {!loading && allNews.length > 5 && (
             <section style={{ marginTop: 60 }}>
               <div className="section-head" style={{ justifyContent: 'center' }}>
                 <h2 className="section-title" style={{ padding: '0 20px' }}>{t.moreStories || 'More Top Stories'}</h2>
               </div>
               <div className="more-stories-grid">
-                {allNews.slice(20, 32).map(n => <NewsCard key={n.id} news={n} />)}
+                {allNews.slice(0, 40).map(n => <NewsCard key={n.id} news={n} />)}
               </div>
             </section>
           )}

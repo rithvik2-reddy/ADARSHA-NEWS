@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Grid, Search, FileText, Settings } from 'lucide-react';
+import { Home, Grid, Search, FileText } from 'lucide-react';
 import { TRANSLATIONS } from '../utils/constants.js';
 import { useLang } from '../context/providers.jsx';
 
@@ -22,14 +22,10 @@ export default function BottomNav() {
         <Search size={20} />
         <span>{t.search}</span>
       </NavLink>
-      <NavLink to="/epaper" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+      <a href="https://adarshapaper.in" target="_blank" rel="noopener noreferrer" className="bottom-nav-item">
         <FileText size={20} />
         <span>E-Paper</span>
-      </NavLink>
-      <NavLink to="/admin" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-        <Settings size={20} />
-        <span>Admin</span>
-      </NavLink>
+      </a>
     </nav>
   );
 }
