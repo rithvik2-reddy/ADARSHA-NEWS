@@ -41,13 +41,22 @@ export default function Header() {
             <button onClick={() => setMenuOpen(true)} className="mobile-only" style={{ background: 'none', border: 'none', color: 'var(--text)', padding: 4 }}>
               <Menu size={24} />
             </button>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <img src="/logo.png" alt="Adarsha News" style={{ height: scrolled ? 36 : 42, width: 'auto', transition: 'height 0.3s' }} />
-              <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.8px' }}>
-                  ADARSHA <span style={{ color: 'var(--primary)' }}>NEWS</span>
-                </span>
-                <span style={{ fontSize: '.7rem', color: 'var(--muted)', fontWeight: 800 }}>ఆదర్శ వార్తలు</span>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ 
+                background: 'var(--primary-gradient)', 
+                color: '#fff', 
+                padding: '4px 12px', 
+                borderRadius: '8px', 
+                fontWeight: 900, 
+                fontSize: scrolled ? '1.1rem' : '1.3rem',
+                letterSpacing: '-0.5px',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                ADARSHA
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+                <span style={{ fontSize: scrolled ? '0.9rem' : '1.1rem', fontWeight: 800, color: 'var(--text)' }}>NEWS</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--muted)', fontWeight: 700 }}>ఆదర్శ వార్తలు</span>
               </div>
             </Link>
           </div>
@@ -88,7 +97,7 @@ export default function Header() {
         <div className="drawer-overlay" onClick={() => setMenuOpen(false)}>
           <div className="drawer fade-in" onClick={e => e.stopPropagation()}>
             <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <img src="/logo.png" alt="Logo" style={{ height: 32 }} />
+              <div style={{ background: 'var(--primary-gradient)', color: '#fff', padding: '4px 10px', borderRadius: 4, fontWeight: 900 }}>ADARSHA NEWS</div>
               <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text)' }}>
                 <X size={24} />
               </button>

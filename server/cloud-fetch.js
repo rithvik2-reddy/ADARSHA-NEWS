@@ -33,39 +33,55 @@ const RSS_FEEDS = [
     { url: 'https://www.sakshi.com/rss/home.xml', category: 'Politics' },
     { url: 'https://telugu.samayam.com/rssfeeds/2122866.cms', category: 'Politics' },
     { url: 'https://telugu.abplive.com/news/politics/feed', category: 'Politics' },
+    { url: 'https://tv9telugu.com/politics/feed', category: 'Politics' },
+    { url: 'https://ntvtelugu.com/category/politics/feed', category: 'Politics' },
     
     // Latest & Top Stories
     { url: 'https://www.sakshi.com/rss/latest-news.xml', category: 'Latest' },
     { url: 'https://www.sakshi.com/rss/top-stories.xml', category: 'Latest' },
     { url: 'https://telugu.samayam.com/rssfeeds/2122863.cms', category: 'Latest' },
+    { url: 'https://tv9telugu.com/feed', category: 'Latest' },
+    { url: 'https://ntvtelugu.com/feed', category: 'Latest' },
+    { url: 'https://www.v6velugu.com/feed', category: 'Latest' },
     
     // Andhra Pradesh
     { url: 'https://www.sakshi.com/rss/andhra-pradesh.xml', category: 'AndhraPradesh' },
     { url: 'https://telugu.samayam.com/andhra-pradesh/articlelist/2122822.cms', category: 'AndhraPradesh' },
     { url: 'https://telugu.abplive.com/andhra-pradesh/feed', category: 'AndhraPradesh' },
+    { url: 'https://tv9telugu.com/andhra-pradesh/feed', category: 'AndhraPradesh' },
+    { url: 'https://ntvtelugu.com/category/andhra-pradesh/feed', category: 'AndhraPradesh' },
     
     // Telangana
     { url: 'https://www.sakshi.com/rss/telangana.xml', category: 'Telangana' },
     { url: 'https://telugu.samayam.com/telangana/articlelist/2122821.cms', category: 'Telangana' },
     { url: 'https://telugu.abplive.com/telangana/feed', category: 'Telangana' },
+    { url: 'https://tv9telugu.com/telangana/feed', category: 'Telangana' },
+    { url: 'https://ntvtelugu.com/category/telangana/feed', category: 'Telangana' },
+    { url: 'https://www.ntnews.com/feed', category: 'Telangana' },
     
     // India & World
     { url: 'https://www.sakshi.com/rss/national.xml', category: 'India' },
     { url: 'https://telugu.abplive.com/news/india/feed', category: 'India' },
+    { url: 'https://tv9telugu.com/national/feed', category: 'India' },
     { url: 'https://www.sakshi.com/rss/international.xml', category: 'World' },
     { url: 'https://telugu.abplive.com/news/world/feed', category: 'World' },
+    { url: 'https://tv9telugu.com/international/feed', category: 'World' },
     
     // Business & Technology
     { url: 'https://www.sakshi.com/rss/business.xml', category: 'Business' },
     { url: 'https://www.sakshi.com/rss/features/technology.xml', category: 'Technology' },
     { url: 'https://telugu.samayam.com/rssfeeds/2122831.cms', category: 'Technology' },
+    { url: 'https://tv9telugu.com/technology/feed', category: 'Technology' },
     
     // Cinema & Sports
     { url: 'https://www.sakshi.com/rss/entertainment.xml', category: 'Cinema' },
     { url: 'https://telugu.samayam.com/rssfeeds/2122824.cms', category: 'Cinema' },
     { url: 'https://telugu.abplive.com/entertainment/feed', category: 'Cinema' },
+    { url: 'https://tv9telugu.com/entertainment/feed', category: 'Cinema' },
+    { url: 'https://ntvtelugu.com/category/entertainment/feed', category: 'Cinema' },
     { url: 'https://www.sakshi.com/rss/sports.xml', category: 'Sports' },
-    { url: 'https://telugu.samayam.com/rssfeeds/2122827.cms', category: 'Sports' }
+    { url: 'https://telugu.samayam.com/rssfeeds/2122827.cms', category: 'Sports' },
+    { url: 'https://tv9telugu.com/sports/feed', category: 'Sports' }
 ];
 
 // Path to the output JSON file (inside the project's public folder)
@@ -78,7 +94,8 @@ function cleanTitle(title) {
         / - Andhrajyothy$/i, / - Samayam Telugu$/i, / - 10TV$/i, / - ABP Desam$/i,
         / - Times Now Telugu$/i, / - Google News$/i, / - BBC News$/i, / - BBC$/i,
         / \| Sakshi$/i, / \| NTV$/i, / \| Eenadu$/i, / \| Samayam$/i, / \| 10TV$/i,
-        / \- TV9 Telugu$/i, / \- TV5$/i, / \- V6 News$/i, /Sakshi Post$/i
+        / \- TV9 Telugu$/i, / \- TV5$/i, / \- V6 News$/i, /Sakshi Post$/i,
+        / - TV9$/i, / - V6 Velugu$/i, / - NT News$/i, / - ABP News$/i
     ];
     let cleaned = title;
     suffixes.forEach(pattern => { cleaned = cleaned.replace(pattern, ""); });
@@ -100,7 +117,8 @@ function cleanContent(html) {
         '.app-download-banner', '.footer-credits', '.source-branding',
         '.sakshi-play-store', '.social-share-strip', 'script', 'style', 'iframe',
         '.ad-container', '.sponsored-content', 'button', '.newsletter-signup',
-        '.download-app', '.google-play-link', '.appstore-link', '.sakshi-mobile-apps'
+        '.download-app', '.google-play-link', '.appstore-link', '.sakshi-mobile-apps',
+        '.tv9-app-banner', '.ntv-app-link', '.samayam-download', '.abp-app-link'
     ];
     selectorsToRemove.forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
@@ -109,33 +127,42 @@ function cleanContent(html) {
         });
     });
 
-    // 2. Remove all external app links and Sakshi links
+    // 2. Remove all external app links and competitor links
     const links = doc.querySelectorAll('a');
     links.forEach(link => {
         const href = link.getAttribute('href') || '';
         const text = (link.textContent || '').toLowerCase();
         if (
             href.includes('sakshi.com') ||
+            href.includes('tv9telugu.com') ||
+            href.includes('ntvtelugu.com') ||
+            href.includes('eenadu.net') ||
+            href.includes('v6velugu.com') ||
+            href.includes('ntnews.com') ||
             href.includes('play.google.com') ||
             href.includes('apps.apple.com') ||
             href.includes('apple.com/app-store') ||
             text.includes('play store') ||
             text.includes('download app') ||
-            text.includes('సాక్షి')
+            text.includes('సాక్షి') ||
+            text.includes('ఈనాడు') ||
+            text.includes('నమస్తే తెలంగాణ')
         ) {
             logRemoval('branding-link', href || text);
             link.remove();
         }
     });
 
-    // 3. Remove all images that look like app banners or Sakshi logos
+    // 3. Remove all images that look like app banners or competitor logos
     const imgs = doc.querySelectorAll('img');
     imgs.forEach(img => {
         const alt = (img.getAttribute('alt') || '').toLowerCase();
         const src = (img.getAttribute('src') || '').toLowerCase();
         if (alt.includes('download') || alt.includes('app') || alt.includes('sakshi') || 
+            alt.includes('tv9') || alt.includes('ntv') || alt.includes('eenadu') ||
             src.includes('playstore') || src.includes('appstore') || src.includes('banner') ||
-            src.includes('sakshi-mobile-apps') || src.includes('stickey')) {
+            src.includes('sakshi-mobile-apps') || src.includes('stickey') ||
+            src.includes('logo')) {
             logRemoval('promo-image', src || alt);
             img.remove();
         }
@@ -147,6 +174,10 @@ function cleanContent(html) {
         /^sakshi[,:\s-]/i,
         /^సాక్షి ప్రతినిధి/i,
         /^sakshi representative/i,
+        /^టీవీ9[,:\s-]/i,
+        /^tv9[,:\s-]/i,
+        /^ఎన్‌టీవీ[,:\s-]/i,
+        /^ntv[,:\s-]/i,
         /download.*app/i,
         /google play/i,
         /app store/i
@@ -165,12 +196,19 @@ function cleanContent(html) {
     // 5. Global text replacement for any remaining branding
     let finalHtml = doc.body.innerHTML;
     const BLACKLIST = [
-        /సాక్షి/g, /Sakshi/g, /ఈనాడు/g, /Eenadu/g, /నమస్తే తెలంగాణ/g, /Namasthe Telangana/g,
-        /ఆంధ్రజ్యోతి/g, /Andhrajyothy/g, /సమయం/g, /Samayam/g, /10TV/g, /ABP Desam/g, 
-        /ABP/g, /TV9/g, /V6 News/g, /NTV/g, /TV5/g, /Way2News/g, /Inshorts/g, /వెలుగు/g, /Velugu/g
+        [/సాక్షి/g, "ఆదర్శ వార్తలు"], [/Sakshi/g, "Adarsha News"], 
+        [/ఈనాడు/g, "ఆదర్శ వార్తలు"], [/Eenadu/g, "Adarsha News"],
+        [/నమస్తే తెలంగాణ/g, "ఆదర్శ వార్తలు"], [/Namasthe Telangana/g, "Adarsha News"],
+        [/ఆంధ్రజ్యోతి/g, "ఆదర్శ వార్తలు"], [/Andhrajyothy/g, "Adarsha News"], 
+        [/సమయం/g, "ఆదర్శ వార్తలు"], [/Samayam/g, "Adarsha News"], 
+        [/10TV/g, "ఆదర్శ వార్తలు"], [/ABP Desam/g, "ఆదర్శ వార్తలు"], 
+        [/ABP/g, "ఆదర్శ వార్తలు"], [/TV9/g, "ఆదర్శ వార్తలు"], 
+        [/V6 News/g, "ఆదర్శ వార్తలు"], [/NTV/g, "ఆదర్శ వార్తలు"], 
+        [/TV5/g, "ఆదర్శ వార్తలు"], [/Way2News/g, "ఆదర్శ వార్తలు"], 
+        [/Inshorts/g, "ఆదర్శ వార్తలు"], [/వెలుగు/g, "ఆదర్శ వార్తలు"], [/Velugu/g, "Adarsha News"]
     ];
-    BLACKLIST.forEach(pattern => {
-        finalHtml = finalHtml.replace(pattern, "ఆదర్శ");
+    BLACKLIST.forEach(([pattern, replacement]) => {
+        finalHtml = finalHtml.replace(pattern, replacement);
     });
     
     // Remove "Download App" phrases in Telugu
@@ -379,7 +417,7 @@ async function run() {
         const updatedNews = [
             ...newArticles,
             ...existingNews.filter(old => !existingLinks.has(old.link))
-        ].slice(0, 200);
+        ].slice(0, 500);
 
         // Make sure the public directory exists
         const publicDir = path.dirname(OUTPUT_PATH);

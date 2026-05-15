@@ -22,8 +22,8 @@ export default function HeroSlider({ news }) {
   }, [paused, next, slides.length]);
 
   if (!slides.length) return (
-    <div style={{ height: 480, background: 'var(--surface2)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="skel" style={{ width: '100%', height: '100%', borderRadius: 'var(--radius)' }} />
+    <div style={{ height: 480, background: 'var(--surface2)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      <div className="skel" style={{ width: '100%', height: '100%', borderRadius: 'var(--radius)', background: 'linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
     </div>
   );
 
