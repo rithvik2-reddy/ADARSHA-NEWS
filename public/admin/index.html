@@ -1195,9 +1195,19 @@ async function migrateToFirebase() {
   }
 }
 
+function checkIsLocal() {
+  const hn = window.location.hostname;
+  return hn === 'localhost' || 
+         hn === '127.0.0.1' || 
+         hn.startsWith('192.168.') || 
+         hn.startsWith('10.') || 
+         hn.startsWith('172.') || 
+         hn.endsWith('.local');
+}
+
 async function loadSettings() {
   let loaded = false;
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
+  const isLocal = checkIsLocal();
   
   // 1. Try local server first (only if running locally)
   if (isLocal) {
@@ -1236,6 +1246,16 @@ async function loadSettings() {
     } catch (e) {
       console.error("Static settings.json load failed:", e);
     }
+  }
+  
+  // Try local storage cache fallback
+  const localCache = localStorage.getItem('adminSettingsCache');
+  if (localCache) {
+    try {
+      const cachedData = JSON.parse(localCache);
+      settings = { ...settings, ...cachedData };
+      loaded = true;
+    } catch (e) {}
   }
   
   // 3. Initialize Firebase if keys are in settings
@@ -1651,9 +1671,10 @@ function collectSettings() {
 
 async function saveAll() {
   collectSettings();
+  localStorage.setItem('adminSettingsCache', JSON.stringify(settings));
   
   let successCount = 0;
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
+  const isLocal = checkIsLocal();
 
   // Try to initialize Firebase if keys were just entered in the form
   if (!db) {
@@ -1696,13 +1717,13 @@ async function saveAll() {
   if (successCount > 0) {
     showToast(db ? '✅ Saved successfully to Cloud!' : '✅ Saved locally!');
     updateDbStatusIndicator();
-  } else if (!isLocal && !db) {
-    showToast('❌ Cannot save: Please configure Firebase keys first to save to Cloud.', 'red');
+  } else {
+    showToast('✅ Saved locally in browser! (Configure Firebase for live cloud updates)', 'orange');
   }
 }
 
 async function deployToLive() {
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
+  const isLocal = checkIsLocal();
   if (!isLocal) {
     alert('🚀 Publish to adarshapaper.in requires the local PC server to be running.\n\nNote: If you have configured Firebase, settings and news updates are applied INSTANTLY without needing to publish!');
     return;
