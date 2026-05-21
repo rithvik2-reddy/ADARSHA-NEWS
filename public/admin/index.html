@@ -1291,15 +1291,28 @@ async function loadSettings() {
 
 function updateDbStatusIndicator() {
   const statusDb = document.getElementById('dbStatus');
+  const publishBtn = document.querySelector('.btn-deploy');
   if (statusDb) {
     if (db) {
       statusDb.innerHTML = '<span style="width:8px; height:8px; background:#4ade80; border-radius:50%; display:inline-block;"></span> ☁️ Cloud Firestore';
       statusDb.style.background = '#14532d';
       statusDb.style.color = '#4ade80';
+      
+      if (publishBtn) {
+        publishBtn.innerHTML = '✨ Cloud Live & Synced';
+        publishBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        publishBtn.style.boxShadow = '0 8px 25px rgba(16,185,129,0.3)';
+      }
     } else {
       statusDb.innerHTML = '<span style="width:8px; height:8px; background:#fbbf24; border-radius:50%; display:inline-block;"></span> 📁 Local JSON';
       statusDb.style.background = '#475569';
       statusDb.style.color = '#e2e8f0';
+      
+      if (publishBtn) {
+        publishBtn.innerHTML = '🚀 Publish to adarshapaper.in';
+        publishBtn.style.background = 'linear-gradient(135deg, #7c3aed, #db2777)';
+        publishBtn.style.boxShadow = '0 8px 25px rgba(124,58,237,0.45)';
+      }
     }
   }
 }
@@ -1724,8 +1737,32 @@ async function saveAll() {
 
 async function deployToLive() {
   const isLocal = checkIsLocal();
+  
+  if (db) {
+    showToast('✨ Changes are live instantly via Firestore! No publish needed.', 'blue');
+    return;
+  }
+
   if (!isLocal) {
-    alert('🚀 Publish to adarshapaper.in requires the local PC server to be running.\n\nNote: If you have configured Firebase, settings and news updates are applied INSTANTLY without needing to publish!');
+    const log = document.getElementById('deployLog');
+    const badge = document.getElementById('deployBadge');
+    
+    document.getElementById('deployModal').classList.add('open');
+    log.innerHTML = `
+      <div style="padding: 10px 0; color: #f59e0b; font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">⚠️ Cloud Publish Requires Database</div>
+      <div class="line info">You are currently running in <strong>Offline Local JSON Mode</strong>.</div>
+      <div class="line info" style="margin-top:8px;">Editions and settings cannot be published directly from your phone unless you connect a cloud database.</div>
+      <div style="margin-top:20px; padding:16px; background:#0f172a; border-radius:8px; border:1px solid #3b82f6;">
+        <h4 style="color:#60a5fa; margin-bottom:8px;">💡 How to enable instant cloud publishing:</h4>
+        <p style="font-size:0.85rem; color:#94a3b8; line-height:1.4;">
+          Go to the <strong>Database & Firebase</strong> tab in the sidebar, paste your Firebase keys, and click Save. Once connected, all updates become live instantly on the website with <strong>zero wait time!</strong>
+        </p>
+        <button class="btn btn-primary" onclick="closeDeployModal(); showSection('database');" style="margin-top:12px; width:100%;">⚙️ Go to Database Settings</button>
+      </div>
+    `;
+    badge.className = 'status-badge status-error';
+    badge.textContent = '❌ Cloud Publish Blocked';
+    document.getElementById('deployCloseBtn').style.display = 'block';
     return;
   }
 
@@ -1928,6 +1965,10 @@ function editNewsArticle(id) {
 
 function closeNewsEditor() {
   document.getElementById('newsEditorModal').classList.remove('open');
+}
+
+function closeDeployModal() {
+  document.getElementById('deployModal').classList.remove('open');
 }
 
 async function uploadNewsImage(input) {
