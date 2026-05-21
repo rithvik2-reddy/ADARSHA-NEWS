@@ -1132,16 +1132,17 @@ async function saveCredentials() {
 }
 
 // FIREBASE INIT
-function initFirebase() {
-  const apiKey = document.getElementById('firebaseApiKey')?.value;
-  const projectId = document.getElementById('firebaseProjectId')?.value;
+function initFirebase(config) {
+  const apiKey = config?.apiKey || document.getElementById('firebaseApiKey')?.value;
+  const projectId = config?.projectId || document.getElementById('firebaseProjectId')?.value;
+  const storageBucket = config?.storageBucket || document.getElementById('firebaseStorage')?.value;
   if (!apiKey || !projectId) return;
   
   if (!firebase.apps.length) {
     firebase.initializeApp({
       apiKey: apiKey,
       projectId: projectId,
-      storageBucket: document.getElementById('firebaseStorage')?.value
+      storageBucket: storageBucket
     });
     db = firebase.firestore();
     
@@ -1152,7 +1153,9 @@ function initFirebase() {
       badge.innerHTML = '<span style="width:8px; height:8px; background:#38bdf8; border-radius:50%; display:inline-block; box-shadow:0 0 6px #38bdf8;"></span> Cloud Firebase';
     }
     
-    showToast('🔥 Firebase Connected Successfully!', 'blue');
+    if (!config) {
+      showToast('🔥 Firebase Connected Successfully!', 'blue');
+    }
   }
 }
 
@@ -1217,7 +1220,7 @@ async function loadSettings() {
   
   // 3. Initialize Firebase if keys are in settings
   if (loaded && settings.firebase?.apiKey && settings.firebase?.projectId) {
-    initFirebase();
+    initFirebase(settings.firebase);
   }
   
   // 4. If Firebase is connected, load real-time configuration from Firestore settings/global
@@ -1949,7 +1952,22 @@ async function aiGenerate(type) {
   }
 }
 
-checkAuth();
+async function initApp() {
+  try {
+    const res = await fetch(`/settings.json?t=${Date.now()}`);
+    if (res.ok) {
+      const initialSettings = await res.json();
+      if (initialSettings.firebase?.apiKey && initialSettings.firebase?.projectId) {
+        initFirebase(initialSettings.firebase);
+      }
+    }
+  } catch (e) {
+    console.warn("Could not pre-load settings.json on boot:", e);
+  }
+  checkAuth();
+}
+
+initApp();
 </script>
 </body>
 </html>
