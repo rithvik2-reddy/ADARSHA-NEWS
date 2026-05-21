@@ -1043,8 +1043,18 @@ async function handleLogin(e) {
       errorMsg.style.display = 'block';
     }
   } catch (err) {
-    errorMsg.textContent = 'Connection failed. Local server is offline.';
-    errorMsg.style.display = 'block';
+    // 3. Offline/Client-side Fallback (when local server is offline and no Firebase is configured yet)
+    if (username === 'admin' && password === 'password123') {
+      const fallbackToken = btoa('admin:password123');
+      localStorage.setItem('adminToken', fallbackToken);
+      document.getElementById('loginPage').style.display = 'none';
+      showToast('⚠️ Offline Mode (Firebase Not Configured)', 'orange');
+      loadSettings();
+      loadNews();
+    } else {
+      errorMsg.textContent = 'Connection failed. Local server is offline.';
+      errorMsg.style.display = 'block';
+    }
   }
 }
 
