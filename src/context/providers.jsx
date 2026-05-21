@@ -90,7 +90,21 @@ export function NewsProvider({ children }) {
         console.warn("⚠️ Firestore fetch failed, trying local fallback:", err);
       }
 
-      // If Firestore failed or was empty, try the local JSON file
+      // If Firestore failed or was empty, try KVDB Cloud Database fallback
+      if (fetchedDocs.length === 0) {
+        try {
+          const r = await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/news');
+          if (r.ok) {
+            const data = await r.json();
+            fetchedDocs = Array.isArray(data) ? data : [];
+            console.log(`✅ Fetched ${fetchedDocs.length} articles from KVDB Cloud Database`);
+          }
+        } catch (err) {
+          console.warn("⚠️ KVDB fetch failed, trying local fallback:", err);
+        }
+      }
+
+      // If KVDB also failed/empty, try the local JSON file
       if (fetchedDocs.length === 0) {
         try {
           const r = await fetch(`/news-data.json?v=${Date.now()}`);
