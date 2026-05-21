@@ -1258,9 +1258,24 @@ async function loadSettings() {
     } catch (e) {}
   }
   
-  // 3. Initialize Firebase if keys are in settings
-  if (loaded && settings.firebase?.apiKey && settings.firebase?.projectId) {
-    initFirebase(settings.firebase);
+  // 3. Initialize Firebase if keys are in settings or localStorage cache
+  let fbConfig = settings.firebase;
+  if (!fbConfig?.apiKey || !fbConfig?.projectId) {
+    const cachedFb = localStorage.getItem('firebase_config_cache');
+    if (cachedFb) {
+      try {
+        fbConfig = JSON.parse(cachedFb);
+      } catch(e) {}
+    }
+  }
+  
+  if (fbConfig?.apiKey && fbConfig?.projectId) {
+    initFirebase(fbConfig);
+    settings.firebase = {
+      apiKey: fbConfig.apiKey,
+      projectId: fbConfig.projectId,
+      storageBucket: fbConfig.storageBucket || ''
+    };
   }
   
   // 4. If Firebase is connected, load real-time configuration from Firestore settings/global
@@ -1685,6 +1700,9 @@ function collectSettings() {
 async function saveAll() {
   collectSettings();
   localStorage.setItem('adminSettingsCache', JSON.stringify(settings));
+  if (settings.firebase?.apiKey && settings.firebase?.projectId) {
+    localStorage.setItem('firebase_config_cache', JSON.stringify(settings.firebase));
+  }
   
   let successCount = 0;
   const isLocal = checkIsLocal();
