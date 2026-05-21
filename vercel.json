@@ -4,7 +4,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|admin|news-data.json|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -137,6 +137,15 @@ export function NewsProvider({ children }) {
             console.log("🔥 Firebase dynamically initialized from settings.json");
             // Re-fetch news from Firestore now that we are connected
             fetchNews();
+            
+            // Fetch live settings from Firestore
+            const docRef = doc(db, 'settings', 'global');
+            getDoc(docRef).then(docSnap => {
+              if (docSnap.exists()) {
+                setSettings(docSnap.data());
+                console.log("🔥 Live settings loaded from Firestore!");
+              }
+            }).catch(e => console.warn("Failed to load live settings from Firestore:", e));
           } catch (e) { console.error("Dynamic Firebase Init Error:", e); }
         }
       })
