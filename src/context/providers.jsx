@@ -124,8 +124,10 @@ export function NewsProvider({ children }) {
     // Fetch site settings from the central admin portal
     fetch(`https://adarshapaper.in/public/settings.json?t=${Date.now()}`)
       .then(r => r.ok ? r.json() : fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`).then(res => res.json()))
-      .then(s => {
-        setSettings(s);
+      .then(async (s) => {
+        let finalSettings = s;
+        let loadedFromCloud = false;
+
         // Dynamic Firebase Sync: If settings have firebase keys and we haven't initialized yet
         if (!firebaseInitialized && s.firebase?.apiKey && s.firebase?.projectId) {
           try {
@@ -140,13 +142,35 @@ export function NewsProvider({ children }) {
             
             // Fetch live settings from Firestore
             const docRef = doc(db, 'settings', 'global');
-            getDoc(docRef).then(docSnap => {
+            try {
+              const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
-                setSettings(docSnap.data());
+                finalSettings = docSnap.data();
+                loadedFromCloud = true;
+                setSettings(finalSettings);
                 console.log("🔥 Live settings loaded from Firestore!");
               }
-            }).catch(e => console.warn("Failed to load live settings from Firestore:", e));
+            } catch (e) {
+              console.warn("Failed to load live settings from Firestore:", e);
+            }
           } catch (e) { console.error("Dynamic Firebase Init Error:", e); }
+        }
+
+        if (!loadedFromCloud) {
+          try {
+            const kvRes = await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/settings');
+            if (kvRes.ok) {
+              const kvData = await kvRes.json();
+              if (kvData && kvData.name) {
+                finalSettings = kvData;
+                setSettings(finalSettings);
+                console.log("⚡ Dynamic settings loaded from KVDB Cloud!");
+              }
+            }
+          } catch (err) {
+            console.warn("⚠️ KVDB load failed, using static settings:", err);
+            setSettings(finalSettings);
+          }
         }
       })
       .catch(err => console.warn("Could not load settings:", err));

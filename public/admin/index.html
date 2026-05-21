@@ -1294,6 +1294,22 @@ async function loadSettings() {
     } catch (err) {
       console.error("Firestore settings load failed:", err);
     }
+  } else {
+    // Try to load from KVDB Cloud
+    try {
+      const kvRes = await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/settings');
+      if (kvRes.ok) {
+        const kvData = await kvRes.json();
+        if (kvData && kvData.name) {
+          settings = kvData;
+          loaded = true;
+          window.loadedFromKvdb = true;
+          console.log("⚡ Settings loaded from KVDB Cloud Database!");
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ KVDB load failed:", err);
+    }
   }
   
   if (loaded) {
@@ -1312,6 +1328,16 @@ function updateDbStatusIndicator() {
       statusDb.innerHTML = '<span style="width:8px; height:8px; background:#4ade80; border-radius:50%; display:inline-block;"></span> ☁️ Cloud Firestore';
       statusDb.style.background = '#14532d';
       statusDb.style.color = '#4ade80';
+      
+      if (publishBtn) {
+        publishBtn.innerHTML = '✨ Cloud Live & Synced';
+        publishBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        publishBtn.style.boxShadow = '0 8px 25px rgba(16,185,129,0.3)';
+      }
+    } else if (window.loadedFromKvdb) {
+      statusDb.innerHTML = '<span style="width:8px; height:8px; background:#10b981; border-radius:50%; display:inline-block;"></span> ⚡ KVDB Cloud (Auto-Connected)';
+      statusDb.style.background = '#064e3b';
+      statusDb.style.color = '#34d399';
       
       if (publishBtn) {
         publishBtn.innerHTML = '✨ Cloud Live & Synced';
@@ -1725,6 +1751,19 @@ async function saveAll() {
       showToast('❌ Cloud Save Error: ' + e.message, 'red');
       return;
     }
+  } else {
+    // Save to KVDB Cloud
+    try {
+      await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      successCount++;
+      window.loadedFromKvdb = true;
+    } catch (e) {
+      console.warn("KVDB save error:", e);
+    }
   }
   
   if (isLocal) {
@@ -1738,7 +1777,7 @@ async function saveAll() {
         throw new Error('Invalid response from local server');
       }
     } catch (e) {
-      if (!db) {
+      if (!db && !window.loadedFromKvdb) {
         showToast('❌ Error: ' + e.message, 'red');
         return;
       }
@@ -1746,7 +1785,7 @@ async function saveAll() {
   }
   
   if (successCount > 0) {
-    showToast(db ? '✅ Saved successfully to Cloud!' : '✅ Saved locally!');
+    showToast((db || window.loadedFromKvdb) ? '✅ Saved successfully to Cloud!' : '✅ Saved locally!');
     updateDbStatusIndicator();
   } else {
     showToast('✅ Saved locally in browser! (Configure Firebase for live cloud updates)', 'orange');
@@ -1756,8 +1795,8 @@ async function saveAll() {
 async function deployToLive() {
   const isLocal = checkIsLocal();
   
-  if (db) {
-    showToast('✨ Changes are live instantly via Firestore! No publish needed.', 'blue');
+  if (db || window.loadedFromKvdb) {
+    showToast('✨ Changes are live instantly! No publish needed.', 'blue');
     return;
   }
 
