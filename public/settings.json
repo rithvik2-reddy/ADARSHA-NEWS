@@ -1,0 +1,79 @@
+{
+  "name": "Adarsha E-Paper",
+  "logoImage": "/logo.png?v=1",
+  "logoText": "ఆదర్శ",
+  "logoTagline": "తెలుగు దిన పత్రిక",
+  "colors": {
+    "primary": "#ffc107",
+    "secondary": "#1529c1"
+  },
+  "todayDate": "08 May 2026",
+  "editions": [
+    {
+      "id": "TG-main",
+      "name": "TG MAIN",
+      "thumbnail": "/editions/TG-main/2026-05-07/tg-main-2026-05-07.jpeg",
+      "archives": {
+        "2026-05-07": [
+          "/editions/TG-main/2026-05-07/tg-main-2026-05-07.jpeg"
+        ]
+      }
+    },
+    {
+      "id": "AP-main",
+      "name": "AP MAIN",
+      "thumbnail": "/editions/AP-main/2026-05-07/ap-main-2026-05-07.jpeg",
+      "archives": {
+        "2026-05-07": [
+          "/editions/AP-main/2026-05-07/ap-main-2026-05-07.jpeg"
+        ]
+      }
+    },
+    {
+      "id": "hyd-main",
+      "name": "HYD MAIN",
+      "thumbnail": "/editions/hyd-main/2026-05-07/hyd-main-2026-05-07.jpeg",
+      "archives": {
+        "2026-05-07": [
+          "/editions/hyd-main/2026-05-07/hyd-main-2026-05-07.jpeg"
+        ]
+      }
+    }
+  ],
+  "districts": [
+    "MEDAK",
+    "NALGONDA",
+    "KHAMMAM",
+    "WARANGAL",
+    "MAHABUBNAGAR",
+    "NIZAMABAD",
+    "ADILABAD",
+    "KARIMNAGAR"
+  ],
+  "ads": {
+    "sidebar": {
+      "imageUrl": "/ads/ad-sidebar-WhatsApp Image 2026-05-04 at 3.21.37 PM.jpeg",
+      "linkUrl": "#"
+    },
+    "banner": {
+      "imageUrl": "https://via.placeholder.com/728x90?text=Banner+Ad",
+      "linkUrl": "#"
+    }
+  },
+  "tickerText": "WANTED: Reporters required for all districts and mandals across Telangana and Andhra Pradesh. For more details, contact our management immediately. CONTACT : 9948754788 | EMAIL: adarshapaper@gmail.com",
+  "newsAds": {
+    "sidebar": {
+      "imageUrl": "/ads/ad-news-sidebar-Picsart_26-05-06_13-22-38-135.jpg.jpeg",
+      "linkUrl": ""
+    },
+    "banner": {
+      "imageUrl": "/ads/ad-news-banner-Picsart_26-05-06_13-40-14-887.png",
+      "linkUrl": ""
+    }
+  },
+  "firebase": {
+    "apiKey": "",
+    "projectId": "",
+    "storageBucket": ""
+  }
+}

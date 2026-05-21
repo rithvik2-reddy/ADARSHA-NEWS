@@ -1197,29 +1197,39 @@ async function migrateToFirebase() {
 
 async function loadSettings() {
   let loaded = false;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
   
-  // 1. Try local server first (if running)
-  try {
-    const res = await apiFetch(`${API}/settings`);
-    settings = await res.json();
-    loaded = true;
-    
+  // 1. Try local server first (only if running locally)
+  if (isLocal) {
     try {
-      const credRes = await apiFetch(`${API}/admin/credentials`);
-      const credData = await credRes.json();
-      if (credData.username) {
-        document.getElementById('displayAdminUsername').textContent = credData.username;
+      const res = await apiFetch(`${API}/settings`);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        settings = await res.json();
+        loaded = true;
+        
+        try {
+          const credRes = await apiFetch(`${API}/admin/credentials`);
+          const credType = credRes.headers.get('content-type') || '';
+          if (credRes.ok && credType.includes('application/json')) {
+            const credData = await credRes.json();
+            if (credData.username) {
+              document.getElementById('displayAdminUsername').textContent = credData.username;
+            }
+          }
+        } catch (e) {}
       }
-    } catch (e) {}
-  } catch (e) {
-    console.warn("Local settings API offline, trying cloud/static fallback...");
+    } catch (e) {
+      console.warn("Local settings API offline, trying cloud/static fallback...");
+    }
   }
   
   // 2. Try static settings.json loaded from web page origin if offline
   if (!loaded) {
     try {
       const res = await fetch(`/settings.json?t=${Date.now()}`);
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         settings = await res.json();
         loaded = true;
       }
@@ -1253,8 +1263,24 @@ async function loadSettings() {
   
   if (loaded) {
     populateForm();
+    updateDbStatusIndicator();
   } else {
     showToast('⚠️ Could not load settings configuration', 'red');
+  }
+}
+
+function updateDbStatusIndicator() {
+  const statusDb = document.getElementById('dbStatus');
+  if (statusDb) {
+    if (db) {
+      statusDb.innerHTML = '<span style="width:8px; height:8px; background:#4ade80; border-radius:50%; display:inline-block;"></span> ☁️ Cloud Firestore';
+      statusDb.style.background = '#14532d';
+      statusDb.style.color = '#4ade80';
+    } else {
+      statusDb.innerHTML = '<span style="width:8px; height:8px; background:#fbbf24; border-radius:50%; display:inline-block;"></span> 📁 Local JSON';
+      statusDb.style.background = '#475569';
+      statusDb.style.color = '#e2e8f0';
+    }
   }
 }
 
@@ -1627,6 +1653,17 @@ async function saveAll() {
   collectSettings();
   
   let successCount = 0;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
+
+  // Try to initialize Firebase if keys were just entered in the form
+  if (!db) {
+    const apiVal = document.getElementById('firebaseApiKey').value.trim();
+    const projVal = document.getElementById('firebaseProjectId').value.trim();
+    const storageVal = document.getElementById('firebaseStorage').value.trim();
+    if (apiVal && projVal) {
+      initFirebase({ apiKey: apiVal, projectId: projVal, storageBucket: storageVal });
+    }
+  }
   
   if (db) {
     try {
@@ -1638,23 +1675,39 @@ async function saveAll() {
     }
   }
   
-  try {
-    const r = await apiFetch(`${API}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
-    const d = await r.json();
-    if (d.success) successCount++;
-  } catch (e) {
-    if (!db) {
-      showToast('❌ Error: ' + e.message, 'red');
-      return;
+  if (isLocal) {
+    try {
+      const r = await apiFetch(`${API}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+      const contentType = r.headers.get('content-type') || '';
+      if (r.ok && contentType.includes('application/json')) {
+        const d = await r.json();
+        if (d.success) successCount++;
+      } else {
+        throw new Error('Invalid response from local server');
+      }
+    } catch (e) {
+      if (!db) {
+        showToast('❌ Error: ' + e.message, 'red');
+        return;
+      }
     }
   }
   
   if (successCount > 0) {
     showToast(db ? '✅ Saved successfully to Cloud!' : '✅ Saved locally!');
+    updateDbStatusIndicator();
+  } else if (!isLocal && !db) {
+    showToast('❌ Cannot save: Please configure Firebase keys first to save to Cloud.', 'red');
   }
 }
 
 async function deployToLive() {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('10.');
+  if (!isLocal) {
+    alert('🚀 Publish to adarshapaper.in requires the local PC server to be running.\n\nNote: If you have configured Firebase, settings and news updates are applied INSTANTLY without needing to publish!');
+    return;
+  }
+
   collectSettings();
   document.getElementById('deployModal').classList.add('open');
   document.getElementById('deployLog').innerHTML = '';
@@ -1662,13 +1715,28 @@ async function deployToLive() {
   document.getElementById('deployBadge').textContent = '🔨 Building...';
   document.getElementById('deployCloseBtn').style.display = 'none';
 
-  await apiFetch(`${API}/deploy`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
-  });
-
-  pollDeploy();
+  try {
+    const res = await apiFetch(`${API}/deploy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      pollDeploy();
+    } else {
+      throw new Error('Invalid response');
+    }
+  } catch (err) {
+    const log = document.getElementById('deployLog');
+    const div = document.createElement('div');
+    div.className = 'line error';
+    div.textContent = '❌ Failed to start deployment: Local server returned an invalid response.';
+    log.appendChild(div);
+    document.getElementById('deployBadge').className = 'status-badge status-error';
+    document.getElementById('deployBadge').textContent = '❌ Failed';
+    document.getElementById('deployCloseBtn').style.display = 'block';
+  }
 }
 
 let pollTimer = null;
@@ -1677,6 +1745,10 @@ function pollDeploy() {
   pollTimer = setInterval(async () => {
     try {
       const r = await apiFetch(`${API}/deploy-status`);
+      const contentType = r.headers.get('content-type') || '';
+      if (!r.ok || !contentType.includes('application/json')) {
+        throw new Error('Invalid response');
+      }
       const d = await r.json();
       const log = document.getElementById('deployLog');
       const badge = document.getElementById('deployBadge');
@@ -1726,7 +1798,17 @@ function pollDeploy() {
         document.getElementById('deployCloseBtn').style.display = 'block';
         clearInterval(pollTimer);
       }
-    } catch (e) { console.error("Poll Error:", e); }
+    } catch (e) {
+      clearInterval(pollTimer);
+      const log = document.getElementById('deployLog');
+      const div = document.createElement('div');
+      div.className = 'line error';
+      div.textContent = '❌ Deployment monitoring connection lost.';
+      log.appendChild(div);
+      document.getElementById('deployBadge').className = 'status-badge status-error';
+      document.getElementById('deployBadge').textContent = '❌ Error';
+      document.getElementById('deployCloseBtn').style.display = 'block';
+    }
   }, 1000);
 }
 
