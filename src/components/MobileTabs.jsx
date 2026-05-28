@@ -9,27 +9,12 @@ export default function MobileTabs() {
   const location = useLocation();
 
   return (
-    <div className="mobile-category-tabs" style={{
-      display: 'flex',
-      overflowX: 'auto',
-      gap: 12,
-      padding: '8px 0',
-      borderBottom: '1px solid var(--border)'
-    }}>
+    <div className="mobile-category-tabs">
       {CATEGORIES.map(cat => (
         <Link
           key={cat.key}
           to={`/category/${cat.key}`}
-          className="mobile-tab-item"
-          style={{
-            whiteSpace: 'nowrap',
-            color: 'var(--text)',
-            padding: '4px 8px',
-            borderRadius: 4,
-            fontWeight: 600,
-            background: location.pathname === `/category/${cat.key}` ? 'var(--primary-gradient)' : 'transparent',
-            color: location.pathname === `/category/${cat.key}` ? '#fff' : 'inherit'
-          }}
+          className={`mobile-tab-item ${location.pathname === `/category/${cat.key}` ? 'active' : ''}`}
         >
           {t[cat.key.toLowerCase()] || cat.key}
         </Link>

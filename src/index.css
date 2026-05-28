@@ -824,9 +824,17 @@ footer::before {
   .desktop-only { display: none !important; }
 
   .main-header { padding: 6px 0 !important; }
-  .main-header [style*="fontSize: 1.3rem"] { font-size: 1rem !important; padding: 4px 10px !important; }
-  .main-header [style*="fontSize: 1.1rem"] { font-size: 0.85rem !important; }
-  .main-header .container { gap: 8px !important; }
+  .main-header .container { gap: 6px !important; }
+  .logo-brand { font-size: 0.95rem !important; padding: 4px 8px !important; border-radius: 6px !important; }
+  .logo-title { font-size: 0.85rem !important; }
+  .logo-subtitle { display: none !important; }
+  .lang-switcher-btn span { display: none !important; }
+  .lang-switcher-btn { padding: 6px !important; border-radius: 50% !important; }
+  .mobile-tab-item.active {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border-color: transparent !important;
+  }
 
   .hero-grid { 
     display: flex; 

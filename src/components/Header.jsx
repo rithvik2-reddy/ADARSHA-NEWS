@@ -42,8 +42,8 @@ export default function Header() {
             <button onClick={() => setMenuOpen(true)} className="mobile-only" style={{ background: 'none', border: 'none', color: 'var(--text)', padding: 4 }}>
               <Menu size={24} />
             </button>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ 
+            <Link to="/" className="header-logo-link" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="logo-brand" style={{ 
                 background: 'var(--primary-gradient)', 
                 color: '#fff', 
                 padding: '4px 12px', 
@@ -55,9 +55,9 @@ export default function Header() {
               }}>
                 ADARSHA
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                <span style={{ fontSize: scrolled ? '0.9rem' : '1.1rem', fontWeight: 800, color: 'var(--text)' }}>NEWS</span>
-                <span style={{ fontSize: '0.6rem', color: 'var(--muted)', fontWeight: 700 }}>ఆదర్శ వార్తలు</span>
+              <div className="logo-text-wrapper" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+                <span className="logo-title" style={{ fontSize: scrolled ? '0.9rem' : '1.1rem', fontWeight: 800, color: 'var(--text)' }}>NEWS</span>
+                <span className="logo-subtitle" style={{ fontSize: '0.6rem', color: 'var(--muted)', fontWeight: 700 }}>ఆదర్శ వార్తలు</span>
               </div>
             </Link>
           </div>
@@ -74,13 +74,13 @@ export default function Header() {
             <Link to="/search" style={{ color: 'var(--text)', padding: 8 }} className="desktop-only">
               <Search size={20} />
             </Link>
-            <button onClick={toggleLang} style={{ 
+            <button onClick={toggleLang} className="lang-switcher-btn" style={{ 
               background: 'var(--surface2)', border: '1px solid var(--border)', 
               borderRadius: 20, padding: '5px 12px', fontSize: '.75rem', 
               fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text)'
             }}>
               <Globe size={14} />
-              {lang === 'te' ? 'English' : 'తెలుగు'}
+              <span>{lang === 'te' ? 'English' : 'తెలుగు'}</span>
             </button>
             <button onClick={toggle} style={{ 
               background: 'none', border: 'none', color: 'var(--text)', 
