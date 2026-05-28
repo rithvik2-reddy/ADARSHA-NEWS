@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, Search, Sun, Moon, Globe, X, Newspaper, Home } from 'lucide-react';
 import { useTheme, useLang, useNews } from '../context/providers.jsx';
 import { CATEGORIES, TRANSLATIONS } from '../utils/constants.js';
+import MobileTabs from './MobileTabs.jsx';
 
 const NAV_CATS = ['Politics','Telangana','AndhraPradesh','India','World','Sports','Cinema','Business','Technology','Viral'];
 
@@ -91,6 +92,7 @@ export default function Header() {
 
         </div>
       </header>
+      <MobileTabs />
 
       {/* DRAWER */}
       {menuOpen && (

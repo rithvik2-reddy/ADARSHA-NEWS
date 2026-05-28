@@ -48,9 +48,15 @@ const FALLBACKS = {
 export const safeImg = (url, cat) => {
   if (isBranded(url) || !url || url === 'undefined') {
     const list = FALLBACKS[cat] || [FALLBACK_IMAGE];
-    // Use a deterministic choice based on URL/title string if possible to avoid flickering, 
-    // but here we'll just stick to a simple selection.
-    return list[Math.floor(Math.random() * list.length)];
+    // Use a deterministic choice based on the original URL (or empty string) to avoid flickering and repeated images.
+    // Simple hash: sum of char codes modulo list length.
+    const seed = url || '';
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash + seed.charCodeAt(i)) % list.length;
+    }
+    const index = hash;
+    return list[index];
   }
   return url;
 };

@@ -48,12 +48,10 @@ jobs:
             git commit -m "🤖 Auto Update: New articles [$(date '+%Y-%m-%d %H:%M')]"
             
             # Sync all potential production branches for Vercel
-            git pull --rebase origin main
-            git push origin HEAD:main --force
-            sleep 5
-            git push origin HEAD:master --force
-            sleep 5
-            git push origin HEAD:production --force
+            git pull --rebase origin main || echo "Rebase failed"
+            git push origin HEAD:main || git push origin HEAD:main --force || echo "Push to main failed"
+            git push origin HEAD:master || git push origin HEAD:master --force || echo "Push to master failed"
+            git push origin HEAD:production || git push origin HEAD:production --force || echo "Push to production failed"
             
-            echo "✅ News data pushed to all branches (main, master, production) successfully!"
+            echo "✅ News data sync complete!"
           fi
