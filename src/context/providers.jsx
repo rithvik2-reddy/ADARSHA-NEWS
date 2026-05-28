@@ -119,6 +119,12 @@ export function NewsProvider({ children }) {
       }
 
       if (fetchedDocs.length > 0) {
+        // Sort by pubDate descending (newest first)
+        fetchedDocs.sort((a, b) => {
+          const dA = a.pubDate ? new Date(a.pubDate) : new Date(0);
+          const dB = b.pubDate ? new Date(b.pubDate) : new Date(0);
+          return dB - dA;
+        });
         setAllNews(fetchedDocs);
         localStorage.setItem('an_cache', JSON.stringify(fetchedDocs));
       }

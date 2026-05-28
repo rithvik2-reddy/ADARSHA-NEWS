@@ -4,6 +4,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy 
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { CATEGORIES } from '../utils/constants.js';
+import { safeImg } from '../utils/helpers.js';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -209,7 +210,7 @@ export default function AdminDashboard() {
                   overflow: 'hidden', cursor: 'pointer', position: 'relative'
                 }} onClick={() => document.getElementById('imgUpload').click()}>
                   {form.imageUrl ? (
-                    <img src={form.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={safeImg(form.imageUrl, form.category)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <div style={{ textAlign: 'center' }}>
                       <span style={{ fontSize: '2rem' }}>📸</span>
@@ -227,7 +228,7 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {news.map(n => (
                   <div key={n.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 8, borderRadius: 8, transition: '.2s' }} className="admin-list-item">
-                    <img src={n.imageUrl} style={{ width: 50, height: 40, objectFit: 'cover', borderRadius: 4 }} />
+                    <img src={safeImg(n.imageUrl, n.category)} style={{ width: 50, height: 40, objectFit: 'cover', borderRadius: 4 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <h5 style={{ fontSize: '.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.title}</h5>
                       <div style={{ display: 'flex', gap: 8, fontSize: '.7rem', color: 'var(--muted)' }}>

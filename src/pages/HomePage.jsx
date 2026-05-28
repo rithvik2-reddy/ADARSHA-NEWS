@@ -12,7 +12,7 @@ import { CompactCard, SkeletonCompact, NewsCard } from '../components/NewsCard.j
 const HOME_CATS = ['Politics', 'Telangana', 'AndhraPradesh', 'India', 'World', 'Sports', 'Cinema', 'Business', 'Technology'];
 
 export default function HomePage() {
-  const { allNews, loading } = useNews();
+  const { allNews, loading, settings } = useNews();
   const { lang } = useLang();
   const t = TRANSLATIONS[lang];
 
@@ -63,6 +63,18 @@ export default function HomePage() {
           </div>
         </div>
 
+        {settings?.newsAds?.banner?.imageUrl && (
+          <div className="container" style={{ marginBottom: 30, display: 'flex', justifyContent: 'center' }}>
+            <a href={settings.newsAds.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '970px' }}>
+              <img 
+                src={settings.newsAds.banner.imageUrl.startsWith('http') ? settings.newsAds.banner.imageUrl : `https://adarshapaper.in${settings.newsAds.banner.imageUrl}?v=${Date.now()}`} 
+                alt="Banner Advertisement" 
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }} 
+              />
+            </a>
+          </div>
+        )}
+
         {/* TRENDING SECTION - FULL WIDTH BACKGROUND */}
         {!loading && allNews.length > 0 && (
           <div className="trending-wrapper">
@@ -96,9 +108,21 @@ export default function HomePage() {
             
             <div className="sidebar">
               {/* ADVERTISEMENT WIDGET */}
-              <div className="sidebar-ad">
-                <span className="ad-label">Advertisement</span>
-                <div className="ad-placeholder">Ad Space (300x250)</div>
+              <div className="sidebar-ad" style={{ padding: settings?.newsAds?.sidebar?.imageUrl ? '0' : '16px' }}>
+                {settings?.newsAds?.sidebar?.imageUrl ? (
+                  <a href={settings.newsAds.sidebar.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', overflow: 'hidden' }}>
+                    <img 
+                      src={settings.newsAds.sidebar.imageUrl.startsWith('http') ? settings.newsAds.sidebar.imageUrl : `https://adarshapaper.in${settings.newsAds.sidebar.imageUrl}?v=${Date.now()}`} 
+                      alt="Advertisement" 
+                      style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '4px' }} 
+                    />
+                  </a>
+                ) : (
+                  <>
+                    <span className="ad-label">Advertisement</span>
+                    <div className="ad-placeholder">Ad Space (300x250)</div>
+                  </>
+                )}
               </div>
 
               {/* REMAINING CATEGORIES */}
