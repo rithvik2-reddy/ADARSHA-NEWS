@@ -33,19 +33,7 @@ export default function HomePage() {
       </Helmet>
 
       <main className="home-main">
-        <div className="container mobile-only" style={{ paddingTop: 10, paddingBottom: 0 }}>
-          {/* HORIZONTAL CATEGORY TABS - MOBILE ONLY */}
-          <div className="mobile-category-tabs">
-            {HOME_CATS.map(cat => {
-              const catInfo = CATEGORIES.find(c => c.key === cat);
-              return (
-                <Link key={cat} to={`/category/${cat}`} className="mobile-tab-item">
-                  {lang === 'te' ? (catInfo?.te || cat) : cat}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+
 
         <div className="container" style={{ paddingTop: 12, paddingBottom: 40 }}>
           

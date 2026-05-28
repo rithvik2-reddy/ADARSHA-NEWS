@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { safeImg, getCategoryColor } from '../utils/helpers.js';
+import { safeImg, getCategoryColor, formatDate } from '../utils/helpers.js';
 import { TRANSLATIONS } from '../utils/constants.js';
 import { useLang } from '../context/providers.jsx';
 
@@ -21,13 +21,20 @@ export default function HeroSlider({ news }) {
     return () => clearInterval(id);
   }, [paused, next, slides.length]);
 
+  useEffect(() => {
+    if (idx >= slides.length) {
+      setIdx(0);
+    }
+  }, [slides.length, idx]);
+
   if (!slides.length) return (
     <div style={{ height: 480, background: 'var(--surface2)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
       <div className="skel" style={{ width: '100%', height: '100%', borderRadius: 'var(--radius)', background: 'linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
     </div>
   );
 
-  const cur = slides[idx];
+  const cur = slides[idx] || slides[0];
+  if (!cur) return null;
   const catColor = getCategoryColor(cur.category);
 
   return (
@@ -41,7 +48,7 @@ export default function HeroSlider({ news }) {
               <span className="cat-tag" style={{ background: catColor }}>{t[cur.category?.toLowerCase()] || cur.category}</span>
               <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.9rem)', maxWidth: '90%', color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{cur.title}</h2>
               <div style={{ color: 'rgba(255,255,255,.8)', fontSize: '.75rem', marginTop: 8, fontWeight: 600 }}>
-                🕐 {new Date(cur.pubDate).toLocaleString(lang === 'te' ? 'te-IN' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                🕐 {formatDate(cur.pubDate, lang)}
               </div>
             </div>
           </Link>
@@ -72,9 +79,9 @@ export default function HeroSlider({ news }) {
       </div>
 
       <style>{`
-        .hero-slider-container { aspectRatio: 16/7; }
+        .hero-slider-container { aspect-ratio: 16/7; }
         @media(max-width:768px){
-          .hero-slider-container { aspectRatio: 16/10; }
+          .hero-slider-container { aspect-ratio: 16/10; }
           .hero-thumbs { display:none !important; }
           .hero-overlay h2 { font-size: 1.1rem !important; }
         }

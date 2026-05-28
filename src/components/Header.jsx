@@ -92,7 +92,9 @@ export default function Header() {
 
         </div>
       </header>
-      <MobileTabs />
+      <div className="mobile-only">
+        <MobileTabs />
+      </div>
 
       {/* DRAWER */}
       {menuOpen && (
