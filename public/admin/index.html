@@ -1587,7 +1587,8 @@ async function uploadPages(input, ei) {
           throw new Error(d.error?.message || 'ImgBB upload failed');
         }
       } catch (err) {
-        showToast('❌ ImgBB Upload Error: ' + err.message, 'red');
+        showToast('❌ Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab.', 'red');
+        alert('Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab. Error: ' + err.message);
         return;
       }
     }
@@ -1610,9 +1611,21 @@ async function uploadPages(input, ei) {
       console.warn("KVDB save error in uploadPages:", e);
     }
   }
+
+  if (checkIsLocal()) {
+    try {
+      await apiFetch(`${API}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+    } catch (e) {
+      console.warn("Local settings save error in uploadPages:", e);
+    }
+  }
   
   renderEditions();
-  showToast('Pages uploaded!');
+  showToast('✅ All page uploads completed and saved!');
 }
 
 async function uploadLogo(input) {
@@ -1674,7 +1687,8 @@ async function uploadLogo(input) {
         throw new Error(d.error?.message || 'ImgBB upload failed');
       }
     } catch (err) {
-      alert("ImgBB Upload Error: " + err.message);
+      showToast('❌ Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab.', 'red');
+      alert('Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab. Error: ' + err.message);
     }
   }
 }
@@ -1746,7 +1760,8 @@ async function uploadAd(input, type) {
         throw new Error(d.error?.message || 'ImgBB upload failed');
       }
     } catch (err) {
-      alert("ImgBB Upload Error: " + err.message);
+      showToast('❌ Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab.', 'red');
+      alert('Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab. Error: ' + err.message);
     }
   }
 }
@@ -2207,7 +2222,8 @@ async function uploadNewsImage(input) {
         throw new Error(d.error?.message || 'ImgBB upload failed');
       }
     } catch (err) {
-      alert("ImgBB Upload Error: " + err.message);
+      showToast('❌ Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab.', 'red');
+      alert('Upload Failed: Please configure your own free ImgBB API key under the "Database & Firebase" settings tab. Error: ' + err.message);
     }
   }
 }
