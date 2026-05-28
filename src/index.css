@@ -812,10 +812,20 @@ footer::before {
 }
 
 @media(max-width:768px) {
-  body { padding-bottom: 70px; overflow-x: hidden; }
-  .bottom-nav { display: grid; height: 60px; padding-bottom: 4px; }
-  .bottom-nav-item i, .bottom-nav-item svg { width: 22px; height: 22px; margin-bottom: 2px; }
-  .bottom-nav-item span { font-size: 0.65rem; font-weight: 700; }
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; overflow-x: hidden; }
+  .bottom-nav { 
+    display: grid; 
+    height: calc(58px + env(safe-area-inset-bottom)) !important; 
+    padding-bottom: env(safe-area-inset-bottom) !important; 
+    box-sizing: border-box !important;
+  }
+  .bottom-nav-item {
+    height: 58px !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+  .bottom-nav-item i, .bottom-nav-item svg { width: 20px; height: 20px; margin-bottom: 0px; }
+  .bottom-nav-item span { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.2px; }
 
   .nav-bar, .search-box { display: none; }
   .container { padding: 0 16px; width: 100%; max-width: 100%; }

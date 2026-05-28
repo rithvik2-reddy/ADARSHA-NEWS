@@ -93,7 +93,9 @@ export default function Header() {
         </div>
       </header>
       <div className="mobile-only">
-        <MobileTabs />
+        <div className="container">
+          <MobileTabs />
+        </div>
       </div>
 
       {/* DRAWER */}
