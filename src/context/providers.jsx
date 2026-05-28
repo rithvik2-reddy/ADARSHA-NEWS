@@ -143,9 +143,8 @@ export function NewsProvider({ children }) {
 
     fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`)
       .then(r => r.json())
-      .then(async (s) => {
-        let finalSettings = s;
-        let loadedFromCloud = false;
+      .then((s) => {
+        setSettings(s);
 
         // Dynamic Firebase Sync: If settings have firebase keys and we haven't initialized yet
         if (!firebaseInitialized && s.firebase?.apiKey && s.firebase?.projectId) {
@@ -158,37 +157,7 @@ export function NewsProvider({ children }) {
             console.log("🔥 Firebase dynamically initialized from settings.json");
             // Re-fetch news from Firestore now that we are connected
             fetchNews();
-            
-            // Fetch live settings from Firestore
-            const docRef = doc(db, 'settings', 'global');
-            try {
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                finalSettings = docSnap.data();
-                loadedFromCloud = true;
-                setSettings(finalSettings);
-                console.log("🔥 Live settings loaded from Firestore!");
-              }
-            } catch (e) {
-              console.warn("Failed to load live settings from Firestore:", e);
-            }
           } catch (e) { console.error("Dynamic Firebase Init Error:", e); }
-        }
-
-        if (!loadedFromCloud) {
-          try {
-            const kvRes = await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/settings');
-            if (kvRes.ok) {
-              const kvData = await kvRes.json();
-              if (kvData && kvData.name) {
-                finalSettings = kvData;
-                console.log("⚡ Dynamic settings loaded from KVDB Cloud!");
-              }
-            }
-          } catch (err) {
-            console.warn("⚠️ KVDB load failed, using static settings:", err);
-          }
-          setSettings(finalSettings);
         }
       })
       .catch(err => console.warn("Could not load settings:", err));
