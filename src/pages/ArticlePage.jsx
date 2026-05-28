@@ -161,7 +161,7 @@ export default function ArticlePage() {
               <div style={{ margin: '32px 0', display: 'flex', justifyContent: 'center' }}>
                 <a href={ads.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '728px' }}>
                   <img 
-                    src={ads.banner.imageUrl.startsWith('http') ? ads.banner.imageUrl : `https://adarshapaper.in${ads.banner.imageUrl}?v=${Date.now()}`} 
+                    src={ads.banner.imageUrl.startsWith('http') ? encodeURI(ads.banner.imageUrl) : encodeURI(`https://adarshapaper.in${ads.banner.imageUrl}?v=${Date.now()}`)} 
                     alt="Advertisement" 
                     style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px' }} 
                   />
@@ -190,7 +190,7 @@ export default function ArticlePage() {
           <aside className="article-sidebar">
             {ads?.sidebar?.imageUrl ? (
               <a href={ads.sidebar.linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="sidebar-ad-box">
-                <img src={ads.sidebar.imageUrl.startsWith('http') ? ads.sidebar.imageUrl : `https://adarshapaper.in${ads.sidebar.imageUrl}?v=${Date.now()}`} alt="Advertisement" />
+                <img src={ads.sidebar.imageUrl.startsWith('http') ? encodeURI(ads.sidebar.imageUrl) : encodeURI(`https://adarshapaper.in${ads.sidebar.imageUrl}?v=${Date.now()}`)} alt="Advertisement" />
               </a>
             ) : (
               <div className="sidebar-ad-box placeholder">

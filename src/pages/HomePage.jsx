@@ -67,7 +67,7 @@ export default function HomePage() {
           <div className="container" style={{ marginBottom: 30, display: 'flex', justifyContent: 'center' }}>
             <a href={settings.newsAds.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '970px' }}>
               <img 
-                src={settings.newsAds.banner.imageUrl.startsWith('http') ? settings.newsAds.banner.imageUrl : `https://adarshapaper.in${settings.newsAds.banner.imageUrl}?v=${Date.now()}`} 
+                src={settings.newsAds.banner.imageUrl.startsWith('http') ? encodeURI(settings.newsAds.banner.imageUrl) : encodeURI(`https://adarshapaper.in${settings.newsAds.banner.imageUrl}?v=${Date.now()}`)} 
                 alt="Banner Advertisement" 
                 style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }} 
               />
@@ -112,7 +112,7 @@ export default function HomePage() {
                 {settings?.newsAds?.sidebar?.imageUrl ? (
                   <a href={settings.newsAds.sidebar.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', overflow: 'hidden' }}>
                     <img 
-                      src={settings.newsAds.sidebar.imageUrl.startsWith('http') ? settings.newsAds.sidebar.imageUrl : `https://adarshapaper.in${settings.newsAds.sidebar.imageUrl}?v=${Date.now()}`} 
+                      src={settings.newsAds.sidebar.imageUrl.startsWith('http') ? encodeURI(settings.newsAds.sidebar.imageUrl) : encodeURI(`https://adarshapaper.in${settings.newsAds.sidebar.imageUrl}?v=${Date.now()}`)} 
                       alt="Advertisement" 
                       style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '4px' }} 
                     />

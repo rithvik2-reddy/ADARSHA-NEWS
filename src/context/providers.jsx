@@ -141,9 +141,8 @@ export function NewsProvider({ children }) {
       if (window.__hideSplash) window.__hideSplash(); 
     }, 4000);
 
-    // Fetch site settings from the central admin portal
-    fetch(`https://adarshapaper.in/public/settings.json?t=${Date.now()}`)
-      .then(r => r.ok ? r.json() : fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`).then(res => res.json()))
+    fetch(`https://adarshapaper.in/settings.json?t=${Date.now()}`)
+      .then(r => r.json())
       .then(async (s) => {
         let finalSettings = s;
         let loadedFromCloud = false;
@@ -183,14 +182,13 @@ export function NewsProvider({ children }) {
               const kvData = await kvRes.json();
               if (kvData && kvData.name) {
                 finalSettings = kvData;
-                setSettings(finalSettings);
                 console.log("⚡ Dynamic settings loaded from KVDB Cloud!");
               }
             }
           } catch (err) {
             console.warn("⚠️ KVDB load failed, using static settings:", err);
-            setSettings(finalSettings);
           }
+          setSettings(finalSettings);
         }
       })
       .catch(err => console.warn("Could not load settings:", err));
