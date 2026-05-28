@@ -65,7 +65,7 @@ export default function HomePage() {
 
         {settings?.newsAds?.banner?.imageUrl && (
           <div className="container" style={{ marginBottom: 30, display: 'flex', justifyContent: 'center' }}>
-            <a href={settings.newsAds.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '970px' }}>
+            <a href={settings.newsAds.banner.linkUrl || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '600px' }}>
               <img 
                 src={settings.newsAds.banner.imageUrl.startsWith('http') ? encodeURI(settings.newsAds.banner.imageUrl) : encodeURI(`https://adarshapaper.in${settings.newsAds.banner.imageUrl}?v=${Date.now()}`)} 
                 alt="Banner Advertisement" 
