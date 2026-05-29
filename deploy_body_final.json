@@ -1,0 +1,9 @@
+{
+  "name": "adarsha-live-portal",
+  "gitSource": {
+    "type": "github",
+    "repoId": "1229829222",
+    "ref": "main",
+    "sha": "09b9c4e7bbd977a8d36803e62bb6b1e095f999dd"
+  }
+}
