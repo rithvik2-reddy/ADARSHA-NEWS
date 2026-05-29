@@ -77,56 +77,67 @@ export function NewsProvider({ children }) {
     const fetchNews = async () => {
       const hide = () => { if (window.__hideSplash) window.__hideSplash(); };
       
-      let fetchedDocs = [];
+      let localDocs = [];
+      let cloudDocs = [];
 
+      // 1. Fetch from local news-data.json (automated and published news)
+      try {
+        const r = await fetch(`/news-data.json?v=${Date.now()}`);
+        if (r.ok) {
+          const data = await r.json();
+          localDocs = Array.isArray(data) ? data : [];
+          console.log(`✅ Fetched ${localDocs.length} articles from local news-data.json`);
+        }
+      } catch (err) {
+        console.error("❌ Local news-data.json fetch failed:", err);
+      }
+
+      // 2. Fetch from Firestore (if connected)
       try {
         if (db) {
           const q = query(collection(db, 'news'), orderBy('pubDate', 'desc'));
           const snapshot = await getDocs(q);
-          fetchedDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          console.log(`✅ Fetched ${fetchedDocs.length} articles from Firestore`);
+          cloudDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log(`✅ Fetched ${cloudDocs.length} articles from Firestore`);
         }
       } catch (err) {
-        console.warn("⚠️ Firestore fetch failed, trying local fallback:", err);
+        console.warn("⚠️ Firestore fetch failed:", err);
       }
 
-      // If Firestore failed or was empty, try KVDB Cloud Database fallback
-      if (fetchedDocs.length === 0) {
+      // 3. Fetch from KVDB (fallback if Firebase is not connected)
+      if (cloudDocs.length === 0) {
         try {
           const r = await fetch('https://kvdb.io/Gqnp6KVjhagrkfr8gbLi8S/news');
           if (r.ok) {
             const data = await r.json();
-            fetchedDocs = Array.isArray(data) ? data : [];
-            console.log(`✅ Fetched ${fetchedDocs.length} articles from KVDB Cloud Database`);
+            cloudDocs = Array.isArray(data) ? data : [];
+            console.log(`✅ Fetched ${cloudDocs.length} articles from KVDB`);
           }
         } catch (err) {
-          console.warn("⚠️ KVDB fetch failed, trying local fallback:", err);
+          console.warn("⚠️ KVDB fetch failed:", err);
         }
       }
 
-      // If KVDB also failed/empty, try the local JSON file
-      if (fetchedDocs.length === 0) {
-        try {
-          const r = await fetch(`/news-data.json?v=${Date.now()}`);
-          if (r.ok) {
-            const data = await r.json();
-            fetchedDocs = Array.isArray(data) ? data : [];
-            console.log(`✅ Fetched ${fetchedDocs.length} articles from local news-data.json`);
-          }
-        } catch (err) {
-          console.error("❌ Local fetch also failed:", err);
-        }
-      }
+      // Merge local and cloud articles, de-duplicating by id
+      const mergedMap = new Map();
+      localDocs.forEach(item => {
+        if (item && item.id) mergedMap.set(item.id, item);
+      });
+      cloudDocs.forEach(item => {
+        if (item && item.id) mergedMap.set(item.id, item);
+      });
 
-      if (fetchedDocs.length > 0) {
+      const finalDocs = Array.from(mergedMap.values());
+
+      if (finalDocs.length > 0) {
         // Sort by pubDate descending (newest first)
-        fetchedDocs.sort((a, b) => {
+        finalDocs.sort((a, b) => {
           const dA = a.pubDate ? new Date(a.pubDate) : new Date(0);
           const dB = b.pubDate ? new Date(b.pubDate) : new Date(0);
           return dB - dA;
         });
-        setAllNews(fetchedDocs);
-        localStorage.setItem('an_cache', JSON.stringify(fetchedDocs));
+        setAllNews(finalDocs);
+        localStorage.setItem('an_cache', JSON.stringify(finalDocs));
       }
       
       setLoading(false);
